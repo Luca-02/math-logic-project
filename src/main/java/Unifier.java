@@ -10,9 +10,9 @@ public class Unifier {
             return null;
         }
 
-        List<Pair<Term>> equations = new ArrayList<>();
+        List<Equation> equations = new ArrayList<>();
         for (int i = 0; i < l1.getTerms().size(); i++) {
-            equations.add(new Pair<>(l1.getTerms().get(i), l2.getTerms().get(i)));
+            equations.add(new Equation(l1.getTerms().get(i), l2.getTerms().get(i)));
         }
 
         boolean changed;
@@ -21,7 +21,7 @@ public class Unifier {
             int equationSize = equations.size();
 
             for (int i = 0; i < equationSize; i++) {
-                Pair<Term> equation = equations.get(i);
+                Equation equation = equations.get(i);
                 Term t1 = equation.getFirst();
                 Term t2 = equation.getSecond();
 
@@ -38,7 +38,7 @@ public class Unifier {
                     }
                     equation.markToDelete();
                     for (int j = 0; j < t1.getArguments().size(); j++) {
-                        equations.add(new Pair<>(t1.getArguments().get(j), t2.getArguments().get(j)));
+                        equations.add(new Equation(t1.getArguments().get(j), t2.getArguments().get(j)));
                     }
                     changed = true;
                 }
@@ -55,7 +55,7 @@ public class Unifier {
                     if (occurCheck(t1, t2)) {
                         return null;
                     }
-                    List<Pair<Term>> substitutedEquations =
+                    List<Equation> substitutedEquations =
                             applySubstitutionToEquations(equations, t1.getName(), t2, equation);
                     if (substitutedEquations != null) {
                         equations = substitutedEquations;
@@ -65,7 +65,7 @@ public class Unifier {
             }
 
             // Remove the equation founded and marked to delete
-            equations.removeIf(Pair::toDelete);
+            equations.removeIf(Equation::toDelete);
         } while (changed);
 
         if (equations.isEmpty()) {
@@ -73,36 +73,36 @@ public class Unifier {
         }
 
         Map<String, Term> substitutions = new HashMap<>();
-        for (Pair<Term> equation : equations) {
+        for (Equation equation : equations) {
             substitutions.put(equation.getFirst().getName(), equation.getSecond());
         }
 
         return substitutions;
     }
 
-    private static List<Pair<Term>> applySubstitutionToEquations(
-            List<Pair<Term>> equations, String target, Term substitute, Pair<Term> equationToAvoid) {
+    private static List<Equation> applySubstitutionToEquations(
+            List<Equation> equations, String target, Term substitute, Equation equationToAvoid) {
         Map<String, Term> substitution = Map.of(target, substitute);
-        List<Pair<Term>> result = new ArrayList<>();
+        List<Equation> result = new ArrayList<>();
         int substitutionCount = 0;
 
-        for (Pair<Term> pair : equations) {
-            if (pair.equals(equationToAvoid)) {
-                result.add(pair);
+        for (Equation equation : equations) {
+            if (equation.equals(equationToAvoid)) {
+                result.add(equation);
             } else {
                 Term firstSubstituted = null;
                 Term secondSubstituted = null;
-                if (Term.parse(target).occurIn(pair.getFirst())) {
-                    firstSubstituted = Substitution.applySubstitution(pair.getFirst(), substitution);
+                if (Term.parse(target).occurIn(equation.getFirst())) {
+                    firstSubstituted = Substitution.applySubstitution(equation.getFirst(), substitution);
                     substitutionCount++;
                 }
-                if (Term.parse(target).occurIn(pair.getSecond())) {
-                    secondSubstituted = Substitution.applySubstitution(pair.getSecond(), substitution);
+                if (Term.parse(target).occurIn(equation.getSecond())) {
+                    secondSubstituted = Substitution.applySubstitution(equation.getSecond(), substitution);
                     substitutionCount++;
                 }
-                result.add(new Pair<>(
-                        firstSubstituted != null ? firstSubstituted : pair.getFirst(),
-                        secondSubstituted != null ? secondSubstituted : pair.getSecond()
+                result.add(new Equation(
+                        firstSubstituted != null ? firstSubstituted : equation.getFirst(),
+                        secondSubstituted != null ? secondSubstituted : equation.getSecond()
                 ));
             }
         }

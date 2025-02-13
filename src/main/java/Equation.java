@@ -3,22 +3,22 @@ import java.util.Objects;
 /**
  * Identify an equation t ?= h, where t and h are terms.
  */
-public class Pair<T> {
-    private T first;
-    private T second;
+public class Equation {
+    private Term first;
+    private Term second;
     private boolean toDelete;
 
-    public Pair(T first, T second) {
+    public Equation(Term first, Term second) {
         this.first = first;
         this.second = second;
         this.toDelete = false;
     }
 
-    public T getFirst() {
+    public Term getFirst() {
         return first;
     }
 
-    public T getSecond() {
+    public Term getSecond() {
         return second;
     }
 
@@ -31,14 +31,14 @@ public class Pair<T> {
     }
 
     public void swap() {
-        T temp = this.first;
+        Term temp = this.first;
         this.first = this.second;
         this.second = temp;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Pair<?> pair))
+        if (!(o instanceof Equation pair))
             return false;
         return Objects.equals(first, pair.first) &&
                 Objects.equals(second, pair.second);
