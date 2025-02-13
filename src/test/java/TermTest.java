@@ -1,3 +1,4 @@
+import model.Term;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -57,6 +58,7 @@ public class TermTest {
     static Stream<Arguments> provideTermsForParsing() {
         return Stream.of(
                 Arguments.of("?x", new Term("?x"), false),
+                Arguments.of("?x'", new Term("?x'"), false),
                 Arguments.of("a", new Term("a"), true),
                 Arguments.of("f(?x)", new Term("f", List.of(new Term("?x"))), true),
                 Arguments.of("f(a)", new Term("f", List.of(new Term("a"))), true),

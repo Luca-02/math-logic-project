@@ -1,3 +1,7 @@
+import model.Equation;
+import model.Literal;
+import model.Term;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
