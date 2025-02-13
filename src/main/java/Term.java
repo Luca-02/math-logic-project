@@ -3,54 +3,68 @@ import java.util.List;
 import java.util.Objects;
 
 public class Term {
-    private final String function;
+    private final String name;
     private final List<Term> arguments;
 
-    public Term(String function, List<Term> arguments) {
-        this.function = function;
+    public Term(String name, List<Term> arguments) {
+        this.name = name;
         this.arguments = arguments;
     }
 
-    public Term(String function) {
-        this(function, new ArrayList<>());
+    public Term(String name) {
+        this(name, new ArrayList<>());
     }
 
-    public String getFunction() {
-        return function;
+    public String getName() {
+        return name;
     }
 
     public List<Term> getArguments() {
         return arguments;
     }
 
-    public boolean isVarOrConst() {
-        return !isFunction() &&
-                function.length() == 1 &&
-                Character.isLowerCase(function.charAt(0));
+    public boolean isVariable() {
+        return !isFunction();
     }
 
     public boolean isFunction() {
-        return arguments != null && !arguments.isEmpty();
+        return (arguments != null && !arguments.isEmpty()) || !name.contains("?");
+    }
+
+    public boolean occurIn(Term term) {
+        if (term.isVariable()) {
+            return equals(term);
+        } else {
+            if (equals(term)) {
+                return true;
+            }
+            for (Term arg : term.getArguments()) {
+                if (occurIn(arg)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Term other))
             return false;
-        return Objects.equals(function, other.function) &&
+        return Objects.equals(name, other.name) &&
                 Objects.equals(arguments, other.arguments);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(function, arguments);
+        return Objects.hash(name, arguments);
     }
 
     @Override
     public String toString() {
-        if (isVarOrConst()) return function;
-        if (arguments == null || arguments.isEmpty()) return function;
-        return function + "(" + String.join(", ", arguments.stream().map(Term::toString).toList()) + ")";
+        if (isVariable()) return name;
+        if (arguments == null || arguments.isEmpty()) return name;
+        return name + "(" + String.join(", ", arguments.stream().map(Term::toString).toList()) + ")";
     }
 
     public static Term parse(String input) {

@@ -1,7 +1,6 @@
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,8 +15,8 @@ class ClauseTest {
     public void testClauseEquality() {
         String predicate1 = "Q";
         String predicate2 = "S";
-        String termStr1 = "f(x, y)";
-        String termStr2 = "f(g(x), y)";
+        String termStr1 = "f(?x, a)";
+        String termStr2 = "f(g(?x), ?y)";
         Term term1 = Term.parse(termStr1);
         Term term2 = Term.parse(termStr2);
         Literal lit1 = new Literal(false, predicate1, List.of(term1, term2));
@@ -35,8 +34,8 @@ class ClauseTest {
         String predicate1 = "Q";
         String predicate2 = "S";
         String predicate3 = "T";
-        String termStr1 = "f(x, y)";
-        String termStr2 = "f(g(x), y)";
+        String termStr1 = "f(?x, a)";
+        String termStr2 = "f(g(?x), ?y)";
         Term term1 = Term.parse(termStr1);
         Term term2 = Term.parse(termStr2);
         Literal lit1 = new Literal(false, predicate1, List.of(term1, term2));

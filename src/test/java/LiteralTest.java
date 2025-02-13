@@ -8,25 +8,29 @@ class LiteralTest {
     @Test
     void testNegation() {
         String predicate = "Q";
-        Term term = Term.parse("f(g(x), y)");
-        Literal literal = new Literal(false, predicate, List.of(term));
+        String termStr = "f(g(?x), ?y)";
+        String litStr = predicate + "(" + termStr + ")";
+
+        Literal literal = Literal.parse(litStr);
         Literal negated = literal.negate();
 
         assertTrue(negated.isNegated());
         assertEquals(predicate, negated.getPredicate());
-        assertEquals(List.of(term), negated.getTerms());
+        assertEquals(List.of(Term.parse(termStr)), negated.getTerms());
     }
 
     @Test
     void testEqualsLiteral() {
         String predicate = "Q";
-        String termStr1 = "f(x, y)";
-        String termStr2 = "f(g(x), y)";
-        Term term1 = Term.parse(termStr1);
-        Term term2 = Term.parse(termStr2);
-        Literal lit1 = new Literal(false, predicate, List.of(term1, term2));
-        Literal lit2 = new Literal(false, predicate, List.of(term1, term2));
-        Literal litNeg = new Literal(true, predicate, List.of(term1, term2));
+        String termStr1 = "f(?x, ?y)";
+        String termStr2 = "f(g(?x), ?y)";
+        String litStr1 = predicate + "(" + termStr1 + ", " + termStr2 + ")";
+        String litStr2 = predicate + "(" + termStr1 + ", " + termStr2 + ")";
+        String litStr3 = "¬" + predicate + "(" + termStr1 + ", " + termStr2 + ")";
+
+        Literal lit1 = Literal.parse(litStr1);
+        Literal lit2 = Literal.parse(litStr2);
+        Literal litNeg = Literal.parse(litStr3);
 
         assertEquals(lit1, lit2);
         assertNotEquals(lit1, litNeg);
@@ -35,16 +39,16 @@ class LiteralTest {
     @Test
     void testToString() {
         String predicate = "Q";
-        String termStr1 = "f(x, y)";
-        String termStr2 = "f(g(x), y)";
-        Term term1 = Term.parse(termStr1);
-        Term term2 = Term.parse(termStr2);
-        Literal literal = new Literal(false, predicate, List.of(term1, term2));
-        Literal negatedLiteral = new Literal(true, predicate, List.of(term1, term2));
-        String expected = predicate + "(" + termStr1 + ", " + termStr2 + ")";
-        String expectedNegated = "¬" + predicate + "(" + termStr1 + ", " + termStr2 + ")";
+        String termStr1 = "f(?x, ?y)";
+        String termStr2 = "f(g(?x), ?y)";
 
-        assertEquals(expected, literal.toString());
-        assertEquals(expectedNegated, negatedLiteral.toString());
+        String litStr1 = predicate + "(" + termStr1 + ", " + termStr2 + ")";
+        String litStr2 = "¬" + predicate + "(" + termStr1 + ", " + termStr2 + ")";
+
+        Literal literal = Literal.parse(litStr1);
+        Literal negatedLiteral = Literal.parse(litStr2);
+
+        assertEquals(litStr1, literal.toString());
+        assertEquals(litStr2, negatedLiteral.toString());
     }
 }
