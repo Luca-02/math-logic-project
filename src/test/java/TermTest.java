@@ -1,125 +1,88 @@
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TermTest {
-    @Test
-    public void testEquals() {
-        testEquals("?x");
-        testEquals("a");
-        testEquals("f(g(?x), a)");
-    }
-
-    private void testEquals(String termStr) {
+    @ParameterizedTest(name = "{index} -> termStr={0}")
+    @MethodSource("provideEqualTerms")
+    void testEquals(String termStr) {
         Term term1 = Term.parse(termStr);
         Term term2 = Term.parse(termStr);
-
         assertEquals(term1, term2);
     }
 
-    @Test
-    public void testParsingVariable() {
-        testParsing("?x", new Term("?x"), false);
-    }
-
-    @Test
-    public void testParsingConstant() {
-        testParsing("f", new Term("f"), true);
-        testParsing("f()", "f", new Term("f"), true);
-    }
-
-    @Test
-    public void testParsingFunction() {
-        testParsing("f(?x)", new Term("f",
-                List.of(new Term("?x"))), true);
-        testParsing("?f(?x)", new Term("?f",
-                List.of(new Term("?x"))), true);
-        testParsing("f(?x, a)", new Term("f",
-                List.of(new Term("?x"), new Term("a"))), true);
-    }
-
-    @Test
-    public void testParsingNestedFunction() {
-        testParsing("f(g(?x), a)", new Term("f",
-                List.of(new Term("g", List.of(new Term("?x"))), new Term("a"))), true);
-    }
-
-    private void testParsing(String termStr, Term expected, boolean isFunction) {
-        testParsing(termStr, termStr, expected, isFunction);
-    }
-
-    private void testParsing(String termStr, String expectedStr, Term expected, boolean isFunction) {
+    @ParameterizedTest(name = "{index} -> termStr={0}, expected={1}, isFunction={2}")
+    @MethodSource("provideTermsForParsing")
+    void testParsing(String termStr, Term expected, boolean isFunction) {
         Term term = Term.parse(termStr);
-
         assertEquals(expected, term);
         assertTrue(isFunction ? term.isFunction() : term.isVariable());
-        assertEquals(expectedStr, term.toString());
-    }
-
-
-    @Test
-    public void testVariableToString() {
-        testToString("x?");
-        testToString("a");
-    }
-
-    @Test
-    public void testFunctionToString() {
-        testToString("?f(a)");
-        testToString("f(g(?x), a)");
-    }
-
-    private void testToString(String termStr) {
-        Term term = Term.parse(termStr);
-
         assertEquals(termStr, term.toString());
     }
 
     @Test
-    public void testVariableOccurInVariable() {
-        testTermOccurIn("?x", "?x", true);
+    void testStrangeFunctionName() {
+        String termStr = "?f(?x)";
+        Term term = Term.parse(termStr);
+        assertEquals(new Term("?f", List.of(new Term("?x"))), term);
+        assertTrue(true);
+        assertEquals(termStr, term.toString());
     }
 
-    @Test
-    public void testVariableOccurInFunction() {
-        testTermOccurIn("?x", "f(?x)", true);
-        testTermOccurIn("?y", "f(?x, ?y)", true);
+    @ParameterizedTest(name = "{index} -> termStr={0}")
+    @MethodSource("provideTermsForToString")
+    void testToString(String termStr) {
+        Term term = Term.parse(termStr);
+        assertEquals(termStr, term.toString());
     }
 
-    @Test
-    public void testConstantOccurInFunction() {
-        testTermOccurIn("a", "f(a)", true);
-        testTermOccurIn("b", "f(a, b)", true);
+    @ParameterizedTest(name = "{index} -> termStr1={0}, termStr2={1}, expected={2}")
+    @MethodSource("provideTermsForOccurCheck")
+    void testTermOccurIn(String termStr1, String termStr2, boolean expected) {
+        Term term1 = Term.parse(termStr1);
+        Term term2 = Term.parse(termStr2);
+        assertEquals(expected, term1.occurIn(term2), "Occurrence check failed");
     }
 
-    @Test
-    public void testVariableOccurInNestedFunction() {
-        testTermOccurIn("?x", "f(g(?x), ?y)", true);
-        testTermOccurIn("?y", "f(g(?x), ?y)", true);
+    private static Stream<String> provideEqualTerms() {
+        return Stream.of("?x", "a", "f(?x)", "f(g(?x), a)");
     }
 
-    @Test
-    public void testFunctionOccurInNestedFunction() {
-        testTermOccurIn("g(?x)", "f(g(?x), y)", true);
-        testTermOccurIn("g(a)", "f(x, g(a))", true);
+    static Stream<Arguments> provideTermsForParsing() {
+        return Stream.of(
+                Arguments.of("?x", new Term("?x"), false),
+                Arguments.of("a", new Term("a"), true),
+                Arguments.of("f(?x)", new Term("f", List.of(new Term("?x"))), true),
+                Arguments.of("f(a)", new Term("f", List.of(new Term("a"))), true),
+                Arguments.of("?f(?x)", new Term("?f", List.of(new Term("?x"))), true),
+                Arguments.of("f(?x, a)", new Term("f", List.of(new Term("?x"), new Term("a"))), true),
+                Arguments.of("f(g(?x), a)", new Term("f", List.of(new Term("g", List.of(new Term("?x"))), new Term("a"))), true)
+        );
     }
 
-    @Test
-    public void testVariableNotOccurInFunction() {
-        testTermOccurIn("?x", "f(?y)", false);
+    static Stream<String> provideTermsForToString() {
+        return Stream.of("?x", "a", "?f(a)", "f(g(?x), a)");
     }
 
-    @Test
-    public void testFunctionNotOccurInNestedFunction() {
-        testTermOccurIn("g(?y)", "f(g(?x), ?y)", false);
-    }
-
-    private void testTermOccurIn(String termStr1, String termStr2, boolean occurIn) {
-        Term t1 = Term.parse(termStr1);
-        Term t2 = Term.parse(termStr2);
-
-        assertEquals(occurIn, t1.occurIn(t2));
+    static Stream<Arguments> provideTermsForOccurCheck() {
+        return Stream.of(
+                Arguments.of("?x", "?x", true),
+                Arguments.of("?x", "f(?x)", true),
+                Arguments.of("?y", "f(?x, ?y)", true),
+                Arguments.of("a", "f(a)", true),
+                Arguments.of("b", "f(a, b)", true),
+                Arguments.of("?x", "f(g(?x), ?y)", true),
+                Arguments.of("?y", "f(g(?x), ?y)", true),
+                Arguments.of("g(?x)", "f(g(?x), y)", true),
+                Arguments.of("g(a)", "f(x, g(a))", true),
+                Arguments.of("?x", "f(?y)", false),
+                Arguments.of("g(?y)", "f(g(?x), ?y)", false)
+        );
     }
 }

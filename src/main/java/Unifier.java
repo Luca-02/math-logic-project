@@ -1,4 +1,7 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Unifier {
     public static Map<String, Term> unify(Literal l1, Literal l2) {
@@ -11,8 +14,6 @@ public class Unifier {
         for (int i = 0; i < l1.getTerms().size(); i++) {
             equations.add(new Pair<>(l1.getTerms().get(i), l2.getTerms().get(i)));
         }
-
-        // printEquations(equations);
 
         boolean changed;
         do {
@@ -27,7 +28,6 @@ public class Unifier {
                 // Rule 1: delete t ?= t
                 if (t1.equals(t2)) {
                     equation.markToDelete();
-                    // System.out.println("Rule 1: " + equation);
                 }
 
                 // Rule 2: overwrite f(t1, ..., tn) ?= g(u1, ..., um)
@@ -41,14 +41,12 @@ public class Unifier {
                         equations.add(new Pair<>(t1.getArguments().get(j), t2.getArguments().get(j)));
                     }
                     changed = true;
-                    // System.out.println("Rule 2: " + equation);
                 }
 
                 // Rule 3: overwrite t ?= x with x ?= t, if t is not a variable and x is a variable
                 else if (t1.isFunction() && t2.isVariable()) {
                     equation.swap();
                     changed = true;
-                    // System.out.println("Rule 3: " + equation);
                 }
 
                 // Rule 4: if x ?= t with x not occurring in t, replace
@@ -63,9 +61,7 @@ public class Unifier {
                         equations = substitutedEquations;
                         changed = true;
                     }
-                    // System.out.println("Rule 4: " + equation);
                 }
-                // printEquations(equations);
             }
 
             // Remove the equation founded and marked to delete
@@ -127,13 +123,5 @@ public class Unifier {
     // Rule 6: fail if x ?= t with x != t but x occurring in t
     private static boolean occurCheck(Term t1, Term t2) {
         return !t1.equals(t2) && t1.occurIn(t2);
-    }
-
-    private static void printEquations(List<Pair<Term>> equations) {
-        StringBuilder sb = new StringBuilder();
-        for (Pair<Term> equation : equations) {
-            sb.append(equation.toString()).append(", ");
-        }
-        System.out.println(sb);
     }
 }

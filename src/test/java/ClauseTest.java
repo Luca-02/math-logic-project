@@ -6,13 +6,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ClauseTest {
     @Test
-    public void testEmptyClause() {
+    void testEmptyClause() {
         Clause emptyClause = new Clause();
         assertTrue(emptyClause.isEmpty());
     }
 
     @Test
-    public void testClauseEquality() {
+    void testClauseEquality() {
         String predicate1 = "Q";
         String predicate2 = "S";
         String termStr1 = "f(?x, a)";
@@ -30,7 +30,7 @@ class ClauseTest {
     }
 
     @Test
-    public void testClauseInequality() {
+    void testClauseInequality() {
         String predicate1 = "Q";
         String predicate2 = "S";
         String predicate3 = "T";
