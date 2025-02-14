@@ -1,4 +1,5 @@
-import model.Term;
+package model;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -20,11 +21,15 @@ public class TermTest {
 
     @ParameterizedTest(name = "{index} -> termStr={0}, expected={1}, isFunction={2}")
     @MethodSource("provideTermsForParsing")
-    void testParsing(String termStr, Term expected, boolean isFunction) {
+    void testParsing(String termStr, Term expected, boolean isFunction, int symbolNumber) {
         Term term = Term.parse(termStr);
         assertEquals(expected, term);
         assertTrue(isFunction ? term.isFunction() : term.isVariable());
+        if (isFunction && (term.getArguments() == null || term.getArguments().isEmpty())) {
+            assertTrue(term.isConstant());
+        }
         assertEquals(termStr, term.toString());
+        assertEquals(symbolNumber, term.collectSymbols().size());
     }
 
     @Test
@@ -48,7 +53,21 @@ public class TermTest {
     void testTermOccurIn(String termStr1, String termStr2, boolean expected) {
         Term term1 = Term.parse(termStr1);
         Term term2 = Term.parse(termStr2);
-        assertEquals(expected, term1.occurIn(term2), "Occurrence check failed");
+        assertEquals(expected, term1.occurIn(term2));
+    }
+
+    @Test
+    void testClone() {
+        String termStr = "f(g(?x), a)";
+        Term term = Term.parse(termStr);
+        Term clone = term.clone();
+
+        assertEquals(term, clone);
+        assertNotSame(term, clone);
+
+        clone.getArguments().remove(0);
+
+        assertNotEquals(term, clone);
     }
 
     private static Stream<String> provideEqualTerms() {
@@ -57,14 +76,14 @@ public class TermTest {
 
     static Stream<Arguments> provideTermsForParsing() {
         return Stream.of(
-                Arguments.of("?x", new Term("?x"), false),
-                Arguments.of("?x'", new Term("?x'"), false),
-                Arguments.of("a", new Term("a"), true),
-                Arguments.of("f(?x)", new Term("f", List.of(new Term("?x"))), true),
-                Arguments.of("f(a)", new Term("f", List.of(new Term("a"))), true),
-                Arguments.of("?f(?x)", new Term("?f", List.of(new Term("?x"))), true),
-                Arguments.of("f(?x, a)", new Term("f", List.of(new Term("?x"), new Term("a"))), true),
-                Arguments.of("f(g(?x), a)", new Term("f", List.of(new Term("g", List.of(new Term("?x"))), new Term("a"))), true)
+                Arguments.of("?x", new Term("?x"), false, 1),
+                Arguments.of("?x'", new Term("?x'"), false, 1),
+                Arguments.of("a", new Term("a"), true, 1),
+                Arguments.of("f(?x)", new Term("f", List.of(new Term("?x"))), true, 2),
+                Arguments.of("f(a)", new Term("f", List.of(new Term("a"))), true, 2),
+                Arguments.of("?f(?x)", new Term("?f", List.of(new Term("?x"))), true, 2),
+                Arguments.of("f(?x, a)", new Term("f", List.of(new Term("?x"), new Term("a"))), true, 3),
+                Arguments.of("f(g(?x), a)", new Term("f", List.of(new Term("g", List.of(new Term("?x"))), new Term("a"))), true, 4)
         );
     }
 

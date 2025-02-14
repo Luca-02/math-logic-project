@@ -6,8 +6,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Unifier {
+    public static boolean checkUnificationCorrectness(
+            Literal lit1, Literal lit2, Map<String, Term> substitutions) {
+        Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
+        Literal subLit2 = Substitution.applySubstitution(lit2, substitutions);
+        return Objects.equals(subLit1, subLit2);
+    }
+
     public static Map<String, Term> unify(Literal l1, Literal l2) {
         if (!l1.getPredicate().equals(l2.getPredicate()) ||
                 l1.getTerms().size() != l2.getTerms().size()) {
@@ -72,23 +80,19 @@ public class Unifier {
             equations.removeIf(Equation::toDelete);
         } while (changed);
 
-        if (equations.isEmpty()) {
-            return null;
-        }
-
         Map<String, Term> substitutions = new HashMap<>();
         for (Equation equation : equations) {
             substitutions.put(equation.getFirst().getName(), equation.getSecond());
         }
 
-        return substitutions;
+        return substitutions.isEmpty() ? null : substitutions;
     }
 
-    private static List<Equation> applySubstitutionToEquations(
+    public static List<Equation> applySubstitutionToEquations(
             List<Equation> equations, String target, Term substitute, Equation equationToAvoid) {
         Map<String, Term> substitution = Map.of(target, substitute);
         List<Equation> result = new ArrayList<>();
-        int substitutionCount = 0;
+        int substitutionsCount = 0;
 
         for (Equation equation : equations) {
             if (equation.equals(equationToAvoid)) {
@@ -98,11 +102,11 @@ public class Unifier {
                 Term secondSubstituted = null;
                 if (Term.parse(target).occurIn(equation.getFirst())) {
                     firstSubstituted = Substitution.applySubstitution(equation.getFirst(), substitution);
-                    substitutionCount++;
+                    substitutionsCount++;
                 }
                 if (Term.parse(target).occurIn(equation.getSecond())) {
                     secondSubstituted = Substitution.applySubstitution(equation.getSecond(), substitution);
-                    substitutionCount++;
+                    substitutionsCount++;
                 }
                 result.add(new Equation(
                         firstSubstituted != null ? firstSubstituted : equation.getFirst(),
@@ -111,21 +115,25 @@ public class Unifier {
             }
         }
 
-        if (substitutionCount > 0) {
+        if (substitutionsCount > 0) {
             return result;
         } else {
             return null;
         }
     }
 
-    // Rule 5: fail if f(t1, ..., tn) ?= g(u1, ..., um) with f != g (or n != m)
-    private static boolean isFailing(Term t1, Term t2) {
+    /**
+     * Rule 5: fail if f(t1, ..., tn) ?= g(u1, ..., um) with f != g (or n != m)
+     */
+    public static boolean isFailing(Term t1, Term t2) {
         return !t1.getName().equals(t2.getName()) ||
                 t1.getArguments().size() != t2.getArguments().size();
     }
 
-    // Rule 6: fail if x ?= t with x != t but x occurring in t
-    private static boolean occurCheck(Term t1, Term t2) {
+    /**
+     * Rule 6: fail if x ?= t with x != t but x occurring in t
+     */
+    public static boolean occurCheck(Term t1, Term t2) {
         return !t1.equals(t2) && t1.occurIn(t2);
     }
 }

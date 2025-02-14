@@ -1,5 +1,6 @@
 import model.Literal;
 import model.Term;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -13,19 +14,21 @@ public class UnifierTest {
     @ParameterizedTest(name = "{index} -> lit1={0}, lit2={1}, expected={2}")
     @MethodSource("provideLiteralsForUnification")
     void testUnify(Literal lit1, Literal lit2, Map<String, Term> expected) {
-        Map<String, Term> substitution = Unifier.unify(lit1, lit2);
+        Map<String, Term> substitutions = Unifier.unify(lit1, lit2);
 
         if (expected == null) {
-            assertNull(substitution);
+            assertNull(substitutions);
         } else {
-            assertNotNull(substitution);
-            assertEquals(expected, substitution);
+            assertNotNull(substitutions);
+            assertEquals(expected, substitutions);
 
             // From theory, we know that a unification is correct if and only if
             // it outputs two equal literals when applied to the initial literals.
-            Literal subLit1 = Substitution.applySubstitution(lit1, substitution);
-            Literal subLit2 = Substitution.applySubstitution(lit2, substitution);
-            assertEquals(subLit1, subLit2, "Substituted literals do not match");
+            Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
+            Literal subLit2 = Substitution.applySubstitution(lit2, substitutions);
+
+            boolean correct = Unifier.checkUnificationCorrectness(subLit1, subLit2, substitutions);
+            assertTrue(correct);
         }
     }
 
@@ -129,7 +132,25 @@ public class UnifierTest {
                                 "?y", Term.parse("b"),
                                 "?z", Term.parse("c")
                         )
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x, f(?y))"),
+                        Literal.parse("P(?y, f(?x))"),
+                        Map.of("?x", Term.parse("?y"))
                 )
         );
+    }
+
+    @Test
+    void testFailing() {
+        assertTrue(Unifier.isFailing(Term.parse("f(?x)"), Term.parse("g(?x)")));
+        assertTrue(Unifier.isFailing(Term.parse("f(?x)"), Term.parse("f(?x, ?y)")));
+        assertFalse(Unifier.isFailing(Term.parse("f(?x, ?y)"), Term.parse("f(?z, ?h)")));
+    }
+
+    @Test
+    void testOccurCheck() {
+        assertTrue(Unifier.occurCheck(Term.parse("?x"), Term.parse("f(?x, ?y)")));
+        assertFalse(Unifier.occurCheck(Term.parse("?x"), Term.parse("?x")));
     }
 }

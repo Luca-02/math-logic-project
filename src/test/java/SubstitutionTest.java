@@ -4,7 +4,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -22,7 +21,7 @@ class SubstitutionTest {
     @MethodSource("provideLiteralsForSubstitution")
     void testApplySubstitutionToLiteral(Literal input, Literal expected, Map<String, Term> substitution) {
         Literal result = Substitution.applySubstitution(input, substitution);
-        assertEquals(expected, result, "Substitution did not produce expected literal");
+        assertEquals(expected, result);
     }
 
     static Stream<Arguments> provideTermsForSubstitution() {
@@ -75,6 +74,11 @@ class SubstitutionTest {
                         Term.parse("f(?x, ?y)"),
                         Term.parse("f(?x, ?y)"),
                         Map.of("?z", Term.parse("c"))
+                ),
+                Arguments.of(
+                        Term.parse("?x"),
+                        Term.parse("!x"),
+                        Map.of("?x", Term.parse("!x"))
                 )
         );
     }
@@ -82,8 +86,8 @@ class SubstitutionTest {
     static Stream<Arguments> provideLiteralsForSubstitution() {
         return Stream.of(
                 Arguments.of(
-                        new Literal(false, "P", List.of(Term.parse("g(?y)"), Term.parse("f(?x, h(?x), ?y)"))),
-                        new Literal(false, "P", List.of(Term.parse("g(b)"), Term.parse("f(g(a), h(g(a)), b)"))),
+                        Literal.parse("P(g(?y), f(?x, h(?x), ?y))"),
+                        Literal.parse("P(g(b), f(g(a), h(g(a)), b))"),
                         Map.of("?x", Term.parse("g(a)"), "?y", Term.parse("b"))
                 )
         );

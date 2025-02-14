@@ -1,10 +1,16 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
-public class Term {
+/**
+ * Identify a term, so a variable or a function.
+ * A special function of arity 0 is a constant.
+ */
+public class Term implements Cloneable {
     private final String name;
     private final List<Term> arguments;
 
@@ -29,6 +35,10 @@ public class Term {
         return !isFunction();
     }
 
+    public boolean isConstant() {
+        return (arguments == null || arguments.isEmpty()) && !name.contains("?");
+    }
+
     public boolean isFunction() {
         return (arguments != null && !arguments.isEmpty()) || !name.contains("?");
     }
@@ -49,6 +59,15 @@ public class Term {
         }
     }
 
+    public Set<String> collectSymbols() {
+        Set<String> symbols = new HashSet<>();
+        symbols.add(name);
+        for (Term arg : arguments) {
+            symbols.addAll(arg.collectSymbols());
+        }
+        return symbols;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Term other))
@@ -60,6 +79,20 @@ public class Term {
     @Override
     public int hashCode() {
         return Objects.hash(name, arguments);
+    }
+
+    @Override
+    public Term clone() {
+        try {
+            Term cloned = (Term) super.clone();
+            List<Term> clonedArguments = new ArrayList<>();
+            for (Term arg : arguments) {
+                clonedArguments.add(arg.clone());
+            }
+            return new Term(cloned.getName(), clonedArguments);
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

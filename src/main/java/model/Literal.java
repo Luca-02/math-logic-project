@@ -1,9 +1,11 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
+/**
+ * Identify a literal (atomic formula) P(t1, ..., tn),
+ * where P is a predicate and each ti a term.
+ */
 public class Literal {
     private final boolean isNegated;
     private final String predicate;
@@ -32,7 +34,17 @@ public class Literal {
     }
 
     public Literal negate() {
-        return new Literal(!isNegated, predicate, terms);
+        List<Term> clonedTerms = terms.stream().map(Term::clone).toList();
+        return new Literal(!isNegated, predicate, clonedTerms);
+    }
+
+    public Set<String> collectSymbols() {
+        Set<String> symbols = new HashSet<>();
+        symbols.add(predicate);
+        for (Term term : terms) {
+            symbols.addAll(term.collectSymbols());
+        }
+        return symbols;
     }
 
     @Override
