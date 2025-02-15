@@ -20,7 +20,7 @@ public class ResolverR {
         }
 
         while (!usable.isEmpty()) {
-            // 1. Select given clause (the first found)
+            // 1. Select the given clause
             Clause given = selectGivenClause();
             worked.add(given);
             usable.remove(given);
@@ -68,12 +68,7 @@ public class ResolverR {
     }
 
     public Set<Clause> inferClauses(Clause given, Set<Clause> worked) {
-        Clause givenClone = given.clone();
-        // Apply renomination to make sure that the tow clause have disjoint variables
-        Renamer.renameClausesToDisjointVariable(given, givenClone);
-
-        // Resolution on literals: from given (positive) to given (negative)
-        Set<Clause> newClauses = new HashSet<>(resolveClauses(given, givenClone));
+        Set<Clause> newClauses = new HashSet<>();
 
         for (Clause c : worked) {
             // Apply renomination to make sure that the tow clause have disjoint variables
@@ -155,12 +150,12 @@ public class ResolverR {
         return factorizations;
     }
 
-    public static void reduceForward(Set<Clause> clauses) {
+    private static void reduceForward(Set<Clause> clauses) {
         clauses.removeIf(Clause::isTautology);
         // TODO: Si potrebbe applicare qui la sussunzione e la Matching Replacement Resolution
     }
 
-    public static void reduceBackward(Set<Clause> usable, Set<Clause> worked, Set<Clause> newClauses) {
+    private static void reduceBackward(Set<Clause> usable, Set<Clause> worked, Set<Clause> newClauses) {
         // If a clause in Wo is subsumed by a clause in newClauses, remove it.
 //        for (Clause newC : newClauses) {
 //            usable.removeIf(existing -> newC.subsumes(existing));

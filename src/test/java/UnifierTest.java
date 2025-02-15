@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 public class UnifierTest {
     @ParameterizedTest(name = "{index} -> lit1={0}, lit2={1}, expected={2}")
     @MethodSource("provideLiteralsForUnification")
-    void testUnify(Literal lit1, Literal lit2, Map<String, Term> expected) {
+    void testUnification(Literal lit1, Literal lit2, Map<String, Term> expected) {
         Map<String, Term> substitutions = Unifier.unify(lit1, lit2);
 
         if (expected == null) {
@@ -26,11 +26,24 @@ public class UnifierTest {
 
             // From theory, we know that a unification is correct if and only if
             // it outputs two equal literals when applied to the initial literals.
-            Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
-            Literal subLit2 = Substitution.applySubstitution(lit2, substitutions);
+            assertTrue(Unifier.unificationCorrectness(lit1, lit2, substitutions));
+        }
+    }
 
-            boolean correct = Unifier.checkUnificationCorrectness(subLit1, subLit2, substitutions);
-            assertTrue(correct);
+    @ParameterizedTest(name = "{index} -> lit1={0}, lit2={1}, expected={2}")
+    @MethodSource("provideLiteralsForMatching")
+    void testMatching(Literal lit1, Literal lit2, Map<String, Term> expected) {
+        Map<String, Term> substitutions = Unifier.match(lit1, lit2);
+
+        if (expected == null) {
+            assertNull(substitutions);
+        } else {
+            assertNotNull(substitutions);
+            assertEquals(expected, substitutions);
+
+            // From theory, we know that a matching is correct if and only if
+            // it outputs two equal literals when applied to the left initial literals.
+            assertTrue(Unifier.matchingCorrectness(lit1, lit2, substitutions));
         }
     }
 
@@ -63,46 +76,6 @@ public class UnifierTest {
                         Literal.parse("P(f(?x))"),
                         Literal.parse("P(f(a))"),
                         Map.of("?x", Term.parse("a"))
-                ),
-                Arguments.of(
-                        Literal.parse("P(?x)"),
-                        Literal.parse("Q(a)"),
-                        null // Fail, different predicates
-                ),
-                Arguments.of(
-                        Literal.parse("P(?x, ?y)"),
-                        Literal.parse("P(?x)"),
-                        null // Fail, different predicates arity
-                ),
-                Arguments.of(
-                        Literal.parse("P(f(?x, ?x))"),
-                        Literal.parse("P(f(a, b))"),
-                        null // Fail, no solution
-                ),
-                Arguments.of(
-                        Literal.parse("P(f(?x))"),
-                        Literal.parse("P(g(?x))"),
-                        null // Fail, different function
-                ),
-                Arguments.of(
-                        Literal.parse("P(f(?x))"),
-                        Literal.parse("P(f(?x, ?y))"),
-                        null // Fail, different function
-                ),
-                Arguments.of(
-                        Literal.parse("P(?x)"),
-                        Literal.parse("P(?x)"),
-                        null // Fail, empty solution
-                ),
-                Arguments.of(
-                        Literal.parse("P(?x, f(?x, ?y))"),
-                        Literal.parse("P(?x, f(?x, ?y))"),
-                        null // Fail, same literals
-                ),
-                Arguments.of(
-                        Literal.parse("P(?x)"),
-                        Literal.parse("P(f(?x))"),
-                        null // Fail, occurs check
                 ),
                 Arguments.of(
                         Literal.parse("P(f(?x, g(?y)))"),
@@ -152,6 +125,128 @@ public class UnifierTest {
                         Literal.parse("P(?x, f(?y))"),
                         Literal.parse("P(?y, f(?x))"),
                         Map.of("?x", Term.parse("?y"))
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x, f(?y))"),
+                        Literal.parse("P(?y, f(?x))"),
+                        Map.of("?x", Term.parse("?y"))
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x)"),
+                        Literal.parse("Q(a)"),
+                        null // Fail, different predicates
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x, ?y)"),
+                        Literal.parse("P(?x)"),
+                        null // Fail, different literal arity
+                ),
+                Arguments.of(
+                        Literal.parse("P(f(?x, ?x))"),
+                        Literal.parse("P(f(a, b))"),
+                        null // Fail, no solution
+                ),
+                Arguments.of(
+                        Literal.parse("P(f(?x))"),
+                        Literal.parse("P(g(?x))"),
+                        null // Fail, different function
+                ),
+                Arguments.of(
+                        Literal.parse("P(f(?x))"),
+                        Literal.parse("P(f(?x, ?y))"),
+                        null // Fail, different function
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x)"),
+                        Literal.parse("P(?x)"),
+                        null // Fail, empty solution
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x, f(?x, ?y))"),
+                        Literal.parse("P(?x, f(?x, ?y))"),
+                        null // Fail, same literals
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x)"),
+                        Literal.parse("P(f(?x))"),
+                        null // Fail, occurs check
+                )
+        );
+    }
+
+    Stream<Arguments> provideLiteralsForMatching() {
+        return Stream.of(
+                Arguments.of(
+                        Literal.parse("P(?x)"),
+                        Literal.parse("P(a)"),
+                        Map.of("?x", Term.parse("a"))
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x, ?y)"),
+                        Literal.parse("P(a, b)"),
+                        Map.of(
+                                "?x", Term.parse("a"),
+                                "?y", Term.parse("b")
+                        )
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x, ?y)"),
+                        Literal.parse("P(a, f(b))"),
+                        Map.of(
+                                "?x", Term.parse("a"),
+                                "?y", Term.parse("f(b)")
+                        )
+                ),
+                Arguments.of(
+                        Literal.parse("T(?x, ?y, ?z)"),
+                        Literal.parse("T(a, a, c)"),
+                        Map.of(
+                                "?x", Term.parse("a"),
+                                "?y", Term.parse("a"),
+                                "?z", Term.parse("c")
+                        )
+                ),
+                Arguments.of(
+                        Literal.parse("S(?x, g(?y, ?z))"),
+                        Literal.parse("S(a, g(b, c))"),
+                        Map.of(
+                                "?x", Term.parse("a"),
+                                "?y", Term.parse("b"),
+                                "?z", Term.parse("c")
+                        )
+                ),
+                Arguments.of(
+                        Literal.parse("S(?x, g(?y, ?z))"),
+                        Literal.parse("S(?x, g(?b, ?c))"),
+                        Map.of(
+                                "?y", Term.parse("?b"),
+                                "?z", Term.parse("?c")
+                        )
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x, ?y)"),
+                        Literal.parse("Q(a, b)"),
+                        null // Fail, different predicates
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x, ?y)"),
+                        Literal.parse("P(a, b, c)"),
+                        null // Fail, different literal arity
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x, f(?y))"),
+                        Literal.parse("P(a, g(b))"),
+                        null // Fail, different function
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x, ?y)"),
+                        Literal.parse("P(?x, ?y)"),
+                        null // Fail, equals literal
+                ),
+                Arguments.of(
+                        Literal.parse("P(g(?y)"),
+                        Literal.parse("P(a)"),
+                        null // Fail, no solution
                 )
         );
     }

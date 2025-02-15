@@ -1,6 +1,5 @@
 import model.Clause;
 import model.Literal;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -156,6 +155,13 @@ class ResolverRTest {
 
     Stream<Arguments> provideClauseForRefute() {
         return Stream.of(
+            Arguments.of(
+                    Set.of(
+                            Clause.parse("=> P(f(a))"),
+                            Clause.parse("P(f(a)) =>")
+                    ),
+                    false
+            ),
             Arguments.of(
                     Set.of(
                             Clause.parse("=> P(f(a))"),

@@ -1,15 +1,17 @@
 package model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
-import static model.Constant.NOT_SYMBOL;
+import static global.Constant.NOT_SYMBOL;
 
 /**
  * Identify a literal (atomic formula) P(t1, ..., tn),
  * where P is a predicate and each ti a term.
  */
 public class Literal implements Cloneable {
-    private final boolean isNegated;
+    private boolean isNegated;
     private final String predicate;
     private final List<Term> terms;
 
@@ -36,8 +38,9 @@ public class Literal implements Cloneable {
     }
 
     public Literal negate() {
-        List<Term> clonedTerms = terms.stream().map(Term::clone).toList();
-        return new Literal(!isNegated, predicate, clonedTerms);
+        Literal clone = clone();
+        clone.isNegated = !isNegated;
+        return clone;
     }
 
     public List<String> collectSymbols() {

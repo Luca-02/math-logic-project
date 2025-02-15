@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static model.Constant.VARIABLE_IDENTIFIER;
+import static global.Constant.VARIABLE_IDENTIFIER;
 
 /**
  * Identify a term, so a variable or a function.

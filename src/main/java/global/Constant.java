@@ -1,4 +1,4 @@
-package model;
+package global;
 
 public class Constant {
     public static final String NOT_SYMBOL = "¬";

@@ -9,6 +9,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Substitution {
+    /**
+     * Apply a given substitution to a term.
+     */
     public static Term applySubstitution(Term term, Map<String, Term> substitutions) {
         if (term.isVariable()) {
             Term sub = substitutions.get(term.getName());
@@ -21,6 +24,9 @@ public class Substitution {
         }
     }
 
+    /**
+     * Apply a given substitution to a literal.
+     */
     public static Literal applySubstitution(Literal lit, Map<String, Term> substitutions) {
         List<Term> substitutedTerms = lit.getTerms().stream()
                 .map(term -> applySubstitution(term, substitutions))
@@ -28,6 +34,9 @@ public class Substitution {
         return new Literal(lit.isNegated(), lit.getPredicate(), substitutedTerms);
     }
 
+    /**
+     * Apply a given substitution to a clause.
+     */
     public static Clause applySubstitution(Clause clause, Map<String, Term> substitutions) {
         Set<Literal> literals = new HashSet<>();
         for (Literal lit : clause.getNegativeLiterals()) {

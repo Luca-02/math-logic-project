@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static model.Constant.CLAUSE_LITERALS_DIVISOR;
+import static global.Constant.CLAUSE_LITERALS_DIVISOR;
 
 /**
  * Represent a clause, a disjunction of literals.
@@ -41,10 +41,6 @@ public class Clause implements Cloneable, Comparable<Clause> {
 
     public Set<Literal> getPositiveLiterals() {
         return positiveLiterals;
-    }
-
-    public int getArity() {
-        return negativeLiterals.size() + positiveLiterals.size();
     }
 
     public boolean isTautology() {

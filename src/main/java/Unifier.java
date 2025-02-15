@@ -9,16 +9,56 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Unifier {
-    public static boolean checkUnificationCorrectness(
+    /**
+     * Tests whether substitutions applied to two literals make them unify correctly.
+     */
+    public static boolean unificationCorrectness(
             Literal lit1, Literal lit2, Map<String, Term> substitutions) {
         Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
         Literal subLit2 = Substitution.applySubstitution(lit2, substitutions);
+
+        if (subLit1.isNegated() != subLit2.isNegated()) {
+            subLit1.negate();
+        }
+
         return Objects.equals(subLit1, subLit2);
     }
 
+    /**
+     * Tests whether substitutions applied to one literal yield the other literal.
+     */
+    public static boolean matchingCorrectness(
+            Literal lit1, Literal lit2, Map<String, Term> substitutions) {
+        Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
+
+        if (subLit1.isNegated() != lit2.isNegated()) {
+            subLit1.negate();
+        }
+
+        return Objects.equals(subLit1, lit2);
+    }
+
+    /**
+     * Unify two literals. Returns a substitution map if unification succeeds,
+     * otherwise returns null.
+     */
     public static Map<String, Term> unify(Literal l1, Literal l2) {
-        if (!l1.getPredicate().equals(l2.getPredicate()) ||
-                l1.getTerms().size() != l2.getTerms().size()) {
+        return unifyOrMatch(l1, l2, true);
+    }
+
+    /**
+     * Matching two literals. Returns a substitution map if the match is successful,
+     * otherwise returns null.
+     */
+    public static Map<String, Term> match(Literal l1, Literal l2) {
+        return unifyOrMatch(l1, l2, false);
+    }
+
+    /**
+     * General Method for Unification and Matching.
+     */
+    private static Map<String, Term> unifyOrMatch(Literal l1, Literal l2, boolean isUnification) {
+        if (hasDifferentStructure(l1, l2)) {
             return null;
         }
 
@@ -40,11 +80,12 @@ public class Unifier {
                 // Rule 1: delete t ?= t
                 if (t1.equals(t2)) {
                     equation.markToDelete();
+                    continue;
                 }
 
                 // Rule 2: overwrite f(t1, ..., tn) ?= g(u1, ..., um)
                 // with n equation of t1 ?= u1, ..., tn ?= un
-                else if (t1.isFunction() && t2.isFunction()) {
+                if (t1.isFunction() && (!isUnification || t2.isFunction())) {
                     if (isFailing(t1, t2)) {
                         return null;
                     }
@@ -53,17 +94,19 @@ public class Unifier {
                         equations.add(new Equation(t1.getArguments().get(j), t2.getArguments().get(j)));
                     }
                     changed = true;
+                    continue;
                 }
 
                 // Rule 3: overwrite t ?= x with x ?= t, if t is not a variable and x is a variable
-                else if (t1.isFunction() && t2.isVariable()) {
+                if (isUnification && t1.isFunction() && t2.isVariable()) {
                     equation.swap();
                     changed = true;
+                    continue;
                 }
 
                 // Rule 4: if x ?= t with x not occurring in t, replace
                 // x with t in every other equation of the current list
-                else if (t1.isVariable()) {
+                if (t1.isVariable()) {
                     if (occurCheck(t1, t2)) {
                         return null;
                     }
@@ -103,35 +146,41 @@ public class Unifier {
         return !t1.equals(t2) && t1.occurIn(t2);
     }
 
+    /**
+     * Checks whether two literals have the same predicate and the same number of terms.
+     */
+    private static boolean hasDifferentStructure(Literal l1, Literal l2) {
+        return !l1.getPredicate().equals(l2.getPredicate()) ||
+                l1.getTerms().size() != l2.getTerms().size();
+    }
+
+    /**
+     * Replaces all occurrences of a variable with one term in equations.
+     */
     private static List<Equation> applySubstitutionToEquations(
             List<Equation> equations, String target, Term substitute, Equation equationToAvoid) {
         Map<String, Term> substitution = Map.of(target, substitute);
-        List<Equation> result = new ArrayList<>();
-        int substitutionsCount = 0;
+        List<Equation> updatedEquations = new ArrayList<>();
+        boolean modified = false;
 
-        for (Equation equation : equations) {
-            if (equation.equals(equationToAvoid)) {
-                result.add(equation);
-            } else {
-                Term firstSubstituted = null;
-                Term secondSubstituted = null;
-                if (Term.parse(target).occurIn(equation.getFirst())) {
-                    firstSubstituted = Substitution.applySubstitution(equation.getFirst(), substitution);
-                    substitutionsCount++;
-                }
-                if (Term.parse(target).occurIn(equation.getSecond())) {
-                    secondSubstituted = Substitution.applySubstitution(equation.getSecond(), substitution);
-                    substitutionsCount++;
-                }
-                result.add(new Equation(
-                        firstSubstituted != null ? firstSubstituted : equation.getFirst(),
-                        secondSubstituted != null ? secondSubstituted : equation.getSecond()
-                ));
+        for (Equation eq : equations) {
+            if (eq.equals(equationToAvoid)) {
+                updatedEquations.add(eq);
+                continue;
             }
+
+            Term newFirst = Substitution.applySubstitution(eq.getFirst(), substitution);
+            Term newSecond = Substitution.applySubstitution(eq.getSecond(), substitution);
+
+            if (!newFirst.equals(eq.getFirst()) || !newSecond.equals(eq.getSecond())) {
+                modified = true;
+            }
+
+            updatedEquations.add(new Equation(newFirst, newSecond));
         }
 
-        if (substitutionsCount > 0) {
-            return result;
+        if (modified) {
+            return updatedEquations;
         } else {
             return null;
         }

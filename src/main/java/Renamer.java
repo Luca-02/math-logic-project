@@ -6,11 +6,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static model.Constant.RENAMING_VARIABLE_SYMBOL;
+import static global.Constant.RENAMING_VARIABLE_SYMBOL;
 
 public class Renamer {
     /**
-     * Rename the clause variables so that they have disjoint variables between them
+     * Rename the clause variables so that they have disjoint variables
+     * between them.
      */
     public static void renameClausesToDisjointVariable(Clause original, Clause toRename) {
         Map<String, Term> substitutions = getSubstitutionForDisjointVariables(original, toRename);
@@ -20,6 +21,10 @@ public class Renamer {
         }
     }
 
+    /**
+     * Create a substitution map for two clause so that, if applied,
+     * they have disjoint variables between them.
+     */
     public static Map<String, Term> getSubstitutionForDisjointVariables(Clause original, Clause toRename) {
         Set<String> originalVariables = new HashSet<>(original.collectSymbols());
         Set<String> toRenameVariables = new HashSet<>(toRename.collectSymbols());
