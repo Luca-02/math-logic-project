@@ -244,7 +244,7 @@ public class UnifierTest {
                         null // Fail, equals literal
                 ),
                 Arguments.of(
-                        Literal.parse("P(g(?y)"),
+                        Literal.parse("P(g(?y))"),
                         Literal.parse("P(a)"),
                         null // Fail, no solution
                 )

@@ -132,7 +132,7 @@ public class Unifier {
     }
 
     /**
-     * Rule 5: fail if f(t1, ..., tn) ?= g(u1, ..., um) with f != g (or n != m)
+     * Rule 5: fail if f(t1, ..., tn) ?= g(u1, ..., um) with f != g (or n != m).
      */
     public static boolean isFailing(Term t1, Term t2) {
         return !t1.getName().equals(t2.getName()) ||
@@ -140,7 +140,7 @@ public class Unifier {
     }
 
     /**
-     * Rule 6: fail if x ?= t with x != t but x occurring in t
+     * Rule 6: fail if x ?= t with x != t but x occurring in t.
      */
     public static boolean occurCheck(Term t1, Term t2) {
         return !t1.equals(t2) && t1.occurIn(t2);
