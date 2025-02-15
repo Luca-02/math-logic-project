@@ -47,6 +47,19 @@ class LiteralTest {
     void testCollectSymbols() {
         Literal literal = Literal.parse(litStr1);
 
-        assertEquals(5, literal.collectSymbols().size());
+        assertEquals(8, literal.collectSymbols().size());
+    }
+
+    @Test
+    void testClone() {
+        Literal literal = Literal.parse(litStr1);
+        Literal clone = literal.clone();
+
+        assertEquals(literal, clone);
+        assertNotSame(literal, clone);
+        assertNotSame(literal.getTerms(), clone.getTerms());
+        for (int i = 0; i < literal.getTerms().size(); i++) {
+            assertNotSame(literal.getTerms().get(i), clone.getTerms().get(i));
+        }
     }
 }

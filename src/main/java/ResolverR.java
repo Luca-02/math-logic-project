@@ -1,7 +1,8 @@
 import model.Clause;
+import model.Literal;
+import model.Term;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class ResolverR {
     private final Set<Clause> usable; // Us
@@ -13,11 +14,14 @@ public class ResolverR {
         reduceForward(usable);
     }
 
-    public boolean resolve() {
+    public boolean refute() {
+        if (refutationReached()) {
+            return true;
+        }
+
         while (!usable.isEmpty()) {
             // 1. Select given clause (the first found)
             Clause given = selectGivenClause();
-
             worked.add(given);
             usable.remove(given);
 
@@ -43,10 +47,6 @@ public class ResolverR {
         return false;
     }
 
-    public boolean refutationReached() {
-        return usable.stream().anyMatch(Clause::isEmpty);
-    }
-
     /**
      * Select the minimum clause by number of literals
      */
@@ -60,9 +60,99 @@ public class ResolverR {
         return given;
     }
 
+    /**
+     * Check if we have reached a refutation
+     */
+    public boolean refutationReached() {
+        return usable.stream().anyMatch(Clause::isEmpty);
+    }
+
     public Set<Clause> inferClauses(Clause given, Set<Clause> worked) {
-        // TODO
+        Clause givenClone = given.clone();
+        // Apply renomination to make sure that the tow clause have disjoint variables
+        Renamer.renameClausesToDisjointVariable(given, givenClone);
+
+        // Resolution on literals: from given (positive) to given (negative)
+        Set<Clause> newClauses = new HashSet<>(resolveClauses(given, givenClone));
+
+        for (Clause c : worked) {
+            // Apply renomination to make sure that the tow clause have disjoint variables
+            Renamer.renameClausesToDisjointVariable(c, given);
+
+            // Resolution on literals: from given (positive) to c (negative)
+            newClauses.addAll(resolveClauses(given, c));
+
+            // Resolution on literals: from c (positive) to given (negative)
+            newClauses.addAll(resolveClauses(c, given));
+        }
+
+        // Apply factorization on given clause
+        newClauses.addAll(factorizeClause(given));
+
+        return newClauses;
+    }
+
+    /**
+     * Resolution of two clauses, possibly renamed to have disjoint variables
+     */
+    public Set<Clause> resolveClauses(Clause clauseWithPos, Clause clauseWithNeg) {
+        Set<Clause> resolutions = new HashSet<>();
+        for (Literal pos : clauseWithPos.getPositiveLiterals()) {
+            for (Literal neg : clauseWithNeg.getNegativeLiterals()) {
+                Clause resolvent = resolveClauses(clauseWithPos, clauseWithNeg, pos, neg);
+                if (resolvent != null) {
+                    resolutions.add(resolvent);
+                }
+            }
+        }
+        return resolutions;
+    }
+
+    /**
+     * Resolution of two clauses with the given literals for which we have done the unification
+     */
+    public Clause resolveClauses(Clause clauseWithPos, Clause clauseWithNeg, Literal posToDelete, Literal negToDelete) {
+        Map<String, Term> mgu = Unifier.unify(posToDelete, negToDelete);
+
+        if (mgu != null) {
+            Clause clauseWithPosClone = clauseWithPos.clone();
+            Clause clauseWithNegClone = clauseWithNeg.clone();
+            clauseWithPosClone.getPositiveLiterals().remove(posToDelete);
+            clauseWithNegClone.getNegativeLiterals().remove(negToDelete);
+
+            Set<Literal> mergedLiterals = new HashSet<>();
+            mergedLiterals.addAll(clauseWithPosClone.getNegativeLiterals());
+            mergedLiterals.addAll(clauseWithNegClone.getNegativeLiterals());
+            mergedLiterals.addAll(clauseWithPosClone.getPositiveLiterals());
+            mergedLiterals.addAll(clauseWithNegClone.getPositiveLiterals());
+
+            Clause resolvent = new Clause(mergedLiterals);
+            return Substitution.applySubstitution(resolvent, mgu);
+        }
+
         return null;
+    }
+
+    /**
+     * Right factorization on a given clause
+     */
+    public Set<Clause> factorizeClause(Clause clause) {
+        Set<Clause> factorizations = new HashSet<>();
+
+        List<Literal> posList = new ArrayList<>(clause.getPositiveLiterals());
+        for (int i = 0; i < posList.size(); i++) {
+            for (int j = i + 1; j < posList.size(); j++) {
+                var mgu = Unifier.unify(posList.get(i), posList.get(j));
+                if (mgu != null) {
+                    // By applying the substitution on the clause, it will automatically merge
+                    // the literals A and B on which the unification has been done through the mgu
+                    Clause factClause = Substitution.applySubstitution(clause, mgu);
+                    factorizations.add(factClause);
+                }
+            }
+        }
+
+        return factorizations;
     }
 
     public static void reduceForward(Set<Clause> clauses) {

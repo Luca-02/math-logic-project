@@ -2,11 +2,13 @@ package model;
 
 import java.util.*;
 
+import static model.Constant.NOT_SYMBOL;
+
 /**
  * Identify a literal (atomic formula) P(t1, ..., tn),
  * where P is a predicate and each ti a term.
  */
-public class Literal {
+public class Literal implements Cloneable {
     private final boolean isNegated;
     private final String predicate;
     private final List<Term> terms;
@@ -17,8 +19,8 @@ public class Literal {
         this.terms = terms;
     }
 
-    public Literal(boolean isNegated, String predicate) {
-        this(isNegated, predicate, new ArrayList<>());
+    public Literal(boolean isNegated, String predicate, Term... terms) {
+        this(isNegated, predicate, List.of(terms));
     }
 
     public boolean isNegated() {
@@ -38,8 +40,8 @@ public class Literal {
         return new Literal(!isNegated, predicate, clonedTerms);
     }
 
-    public Set<String> collectSymbols() {
-        Set<String> symbols = new HashSet<>();
+    public List<String> collectSymbols() {
+        List<String> symbols = new ArrayList<>();
         symbols.add(predicate);
         for (Term term : terms) {
             symbols.addAll(term.collectSymbols());
@@ -62,8 +64,22 @@ public class Literal {
     }
 
     @Override
+    public Literal clone() {
+        try {
+            Literal cloned = (Literal) super.clone();
+            List<Term> clonedTerms = new ArrayList<>();
+            for (Term term : terms) {
+                clonedTerms.add(term.clone());
+            }
+            return new Literal(cloned.isNegated, cloned.predicate, clonedTerms);
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public String toString() {
-        return (isNegated ? "¬" : "") + predicate + "(" +
+        return (isNegated ? NOT_SYMBOL : "") + predicate + "(" +
                 String.join(", ", terms.stream().map(Term::toString).toList()) + ")";
     }
 

@@ -2,6 +2,8 @@ package model;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ClauseTest {
@@ -10,48 +12,36 @@ class ClauseTest {
     String predicate3 = "T";
     String termStr1 = "f(?x, a)";
     String termStr2 = "f(g(?x), ?y)";
-    String litStr1 = "%s(%s, %s)".formatted(predicate1, termStr1, termStr2);
-    String litStr2 = "%s(%s, %s)".formatted(predicate2, termStr1, termStr2);
-    String litStr3 = "¬%s(%s, %s)".formatted(predicate3, termStr1, termStr2);
+    String litStr1 = String.format("%s(%s)", predicate1, termStr1);
+    String litStr2 = String.format("%s(%s, %s)", predicate2, termStr1, termStr2);
+    String litStr3 = String.format("%s(%s, %s)", predicate3, termStr1, termStr2);
 
     @Test
     void testEmptyClause() {
-        Clause emptyClause = new Clause();
+        Clause emptyClause = Clause.parse("=>");
         assertTrue(emptyClause.isEmpty());
     }
 
     @Test
     void testClauseEquality() {
-        Literal lit1 = Literal.parse(litStr1);
-        Literal lit2 = Literal.parse(litStr2);
-        Literal lit3 = Literal.parse(litStr2);
-
-        Clause clause1 = new Clause(lit1, lit2);
-        Clause clause2 = new Clause(lit1, lit3);
+        Clause clause1 = Clause.parse(String.format("%s => %s", litStr1, litStr2));
+        Clause clause2 = Clause.parse(String.format("%s => %s", litStr1, litStr2));
 
         assertEquals(clause1, clause2);
     }
 
     @Test
     void testClauseInequality() {
-        Literal lit1 = Literal.parse(litStr1);
-        Literal lit2 = Literal.parse(litStr2);
-        Literal lit3 = Literal.parse(litStr3);
-
-        Clause clause1 = new Clause(lit1, lit3);
-        Clause clause2 = new Clause(lit2, lit3);
+        Clause clause1 = Clause.parse(String.format("%s => %s", litStr1, litStr3));
+        Clause clause2 = Clause.parse(String.format("%s => %s", litStr2, litStr3));
 
         assertNotEquals(clause1, clause2);
     }
 
     @Test
     void testTautology() {
-        Literal lit1 = Literal.parse(litStr1);
-        Literal lit2 = Literal.parse(litStr2);
-        Literal lit3 = lit1.negate();
-
-        Clause clause1 = new Clause(lit1, lit2);
-        Clause clause2 = new Clause(lit1, lit3);
+        Clause clause1 = Clause.parse(String.format("%s => %s", litStr1, litStr2));
+        Clause clause2 = Clause.parse(String.format("%s => %s", litStr2, litStr2));
 
         assertFalse(clause1.isTautology());
         assertTrue(clause2.isTautology());
@@ -63,20 +53,39 @@ class ClauseTest {
         Literal lit2 = Literal.parse(litStr2);
         Literal lit3 = Literal.parse(litStr3);
 
-        Clause clause = new Clause(lit1, lit2, lit3);
-        String expected = "[" + lit3 + "] => [" + lit2 + ", " + lit1 + "]";
+        Clause clause = Clause.parse(String.format("%s => %s, %s", litStr1, litStr2, litStr3));
+        String expected = String.format("%s => %s, %s", lit1, lit2, lit3);
 
         assertEquals(expected, clause.toString());
     }
 
     @Test
     void testCollectSymbols() {
-        Literal lit1 = Literal.parse(litStr1);
-        Literal lit2 = Literal.parse(litStr2);
-        Literal lit3 = Literal.parse(litStr3);
+        Clause clause = Clause.parse(String.format("%s => %s, %s", litStr1, litStr2, litStr3));
 
-        Clause clause = new Clause(lit1, lit2, lit3);
+        assertEquals(20, clause.collectSymbols().size());
+    }
 
-        assertEquals(8, clause.collectSymbols().size());
+    @Test
+    void testClone() {
+        Clause clause = Clause.parse(String.format("%s => %s, %s", litStr1, litStr2, litStr3));
+        Clause clone = clause.clone();
+
+        assertEquals(clause, clone);
+        assertNotSame(clause, clone);
+
+        List<Literal> positive = clause.getPositiveLiterals().stream().toList();
+        List<Literal> positiveClone = clone.getPositiveLiterals().stream().toList();
+        assertNotSame(clause.getPositiveLiterals(), clone.getPositiveLiterals());
+        for (int i = 0; i < positive.size(); i++) {
+            assertNotSame(positive.get(i), positiveClone.get(i));
+        }
+
+        assertNotSame(clause.getNegativeLiterals(), clone.getNegativeLiterals());
+        List<Literal> negative = clause.getNegativeLiterals().stream().toList();
+        List<Literal> negativeClone = clone.getNegativeLiterals().stream().toList();
+        for (int i = 0; i < negative.size(); i++) {
+            assertNotSame(negative.get(i), negativeClone.get(i));
+        }
     }
 }

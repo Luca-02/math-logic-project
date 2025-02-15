@@ -1,18 +1,25 @@
 package model;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static model.Constant.CLAUSE_LITERALS_DIVISOR;
 
 /**
  * Represent a clause, a disjunction of literals.
  * It's represented by the two sets of negatives and positives literals.
  */
-public class Clause implements Comparable<Clause> {
+public class Clause implements Cloneable, Comparable<Clause> {
     private final Set<Literal> negativeLiterals;
     private final Set<Literal> positiveLiterals;
 
-    public Clause(Literal... literals) {
+    public Clause(Set<Literal> literals) {
         this.negativeLiterals = new HashSet<>();
         this.positiveLiterals = new HashSet<>();
         for (Literal lit : literals) {
@@ -22,6 +29,10 @@ public class Clause implements Comparable<Clause> {
                 positiveLiterals.add(lit);
             }
         }
+    }
+
+    public Clause(Literal... literals) {
+        this(Arrays.stream(literals).collect(Collectors.toSet()));
     }
 
     public Set<Literal> getNegativeLiterals() {
@@ -49,8 +60,8 @@ public class Clause implements Comparable<Clause> {
         return negativeLiterals.isEmpty() && positiveLiterals.isEmpty();
     }
 
-    public Set<String> collectSymbols() {
-        Set<String> symbols = new HashSet<>();
+    public List<String> collectSymbols() {
+        List<String> symbols = new ArrayList<>();
         for (Literal lit : negativeLiterals) {
             symbols.addAll(lit.collectSymbols());
         }
@@ -58,6 +69,13 @@ public class Clause implements Comparable<Clause> {
             symbols.addAll(lit.collectSymbols());
         }
         return symbols;
+    }
+
+    public void update(Clause clause) {
+        negativeLiterals.clear();
+        positiveLiterals.clear();
+        negativeLiterals.addAll(clause.getNegativeLiterals());
+        positiveLiterals.addAll(clause.getPositiveLiterals());
     }
 
     @Override
@@ -74,19 +92,97 @@ public class Clause implements Comparable<Clause> {
     }
 
     @Override
-    public int compareTo(Clause o) {
-        // Compare by total number of literals
-        int compare = Integer.compare(getArity(), o.getArity());
-        if (compare != 0) {
-            return compare;
+    public Clause clone() {
+        try {
+            super.clone();
+            Set<Literal> clonedLiterals = new HashSet<>();
+            for (Literal lit : negativeLiterals) {
+                clonedLiterals.add(lit.clone());
+            }
+            for (Literal lit : positiveLiterals) {
+                clonedLiterals.add(lit.clone());
+            }
+            return new Clause(clonedLiterals);
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
         }
+    }
 
+    @Override
+    public int compareTo(Clause o) {
         // Compare by number of distinct symbols
         return Integer.compare(collectSymbols().size(), o.collectSymbols().size());
     }
 
     @Override
     public String toString() {
-        return negativeLiterals.toString() + " => " + positiveLiterals.toString();
+        StringBuilder builder = new StringBuilder();
+
+        Iterator<Literal> negativeLiteralsIterator = negativeLiterals.iterator();
+        while(negativeLiteralsIterator.hasNext()) {
+            builder.append(negativeLiteralsIterator.next().toString().substring(1));
+            if (negativeLiteralsIterator.hasNext()) {
+                builder.append(", ");
+            }
+        }
+
+        builder.append(String.format(" %s ", CLAUSE_LITERALS_DIVISOR));
+
+        Iterator<Literal> positiveLiteralsIterator = positiveLiterals.iterator();
+        while(positiveLiteralsIterator.hasNext()) {
+            builder.append(positiveLiteralsIterator.next().toString());
+            if (positiveLiteralsIterator.hasNext()) {
+                builder.append(", ");
+            }
+        }
+
+        return builder.toString().trim();
+    }
+
+    public static Clause parse(String input) {
+        input = input.replaceAll("\\s+", "");
+
+        String[] parts = input.split(CLAUSE_LITERALS_DIVISOR, 2);
+
+        Set<Literal> literals = new HashSet<>();
+
+        if (!parts[0].isEmpty()) {
+            List<String> negativeLiteralsStr = splitLiterals(parts[0]);
+            for (String litStr : negativeLiteralsStr) {
+                literals.add(Literal.parse(litStr).negate());
+            }
+        }
+
+        if (parts.length > 1 && !parts[1].isEmpty()) {
+            List<String> positiveLiteralsStr = splitLiterals(parts[1]);
+            for (String litStr : positiveLiteralsStr) {
+                literals.add(Literal.parse(litStr));
+            }
+        }
+
+        return new Clause(literals);
+    }
+
+    private static List<String> splitLiterals(String input) {
+        List<String> literals = new ArrayList<>();
+        int depth = 0;
+        StringBuilder currentLiteral = new StringBuilder();
+
+        for (char c : input.toCharArray()) {
+            if (c == ',' && depth == 0) {
+                literals.add(currentLiteral.toString().trim());
+                currentLiteral = new StringBuilder();
+            } else {
+                if (c == '(') depth++;
+                if (c == ')') depth--;
+                currentLiteral.append(c);
+            }
+        }
+
+        if (!currentLiteral.isEmpty()) {
+            literals.add(currentLiteral.toString().trim());
+        }
+
+        return literals;
     }
 }

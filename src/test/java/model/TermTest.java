@@ -1,6 +1,7 @@
 package model;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -10,6 +11,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TermTest {
     @ParameterizedTest(name = "{index} -> termStr={0}")
     @MethodSource("provideEqualTerms")
@@ -36,7 +38,7 @@ public class TermTest {
     void testStrangeFunctionName() {
         String termStr = "?f(?x)";
         Term term = Term.parse(termStr);
-        assertEquals(new Term("?f", List.of(new Term("?x"))), term);
+        assertEquals(new Term("?f", new Term("?x")), term);
         assertTrue(true);
         assertEquals(termStr, term.toString());
     }
@@ -64,34 +66,34 @@ public class TermTest {
 
         assertEquals(term, clone);
         assertNotSame(term, clone);
-
-        clone.getArguments().remove(0);
-
-        assertNotEquals(term, clone);
+        assertNotSame(term.getArguments(), clone.getArguments());
+        for (int i = 0; i < term.getArguments().size(); i++) {
+            assertNotSame(term.getArguments().get(i), clone.getArguments().get(i));
+        }
     }
 
-    private static Stream<String> provideEqualTerms() {
+    Stream<String> provideEqualTerms() {
         return Stream.of("?x", "a", "f(?x)", "f(g(?x), a)");
     }
 
-    static Stream<Arguments> provideTermsForParsing() {
+    Stream<Arguments> provideTermsForParsing() {
         return Stream.of(
                 Arguments.of("?x", new Term("?x"), false, 1),
                 Arguments.of("?x'", new Term("?x'"), false, 1),
                 Arguments.of("a", new Term("a"), true, 1),
-                Arguments.of("f(?x)", new Term("f", List.of(new Term("?x"))), true, 2),
-                Arguments.of("f(a)", new Term("f", List.of(new Term("a"))), true, 2),
-                Arguments.of("?f(?x)", new Term("?f", List.of(new Term("?x"))), true, 2),
-                Arguments.of("f(?x, a)", new Term("f", List.of(new Term("?x"), new Term("a"))), true, 3),
-                Arguments.of("f(g(?x), a)", new Term("f", List.of(new Term("g", List.of(new Term("?x"))), new Term("a"))), true, 4)
+                Arguments.of("f(?x)", new Term("f", new Term("?x")), true, 2),
+                Arguments.of("f(a)", new Term("f", new Term("a")), true, 2),
+                Arguments.of("?f(?x)", new Term("?f", new Term("?x")), true, 2),
+                Arguments.of("f(?x, a)", new Term("f", new Term("?x"), new Term("a")), true, 3),
+                Arguments.of("f(g(?x), a)", new Term("f", new Term("g", List.of(new Term("?x"))), new Term("a")), true, 4)
         );
     }
 
-    static Stream<String> provideTermsForToString() {
+    Stream<String> provideTermsForToString() {
         return Stream.of("?x", "a", "?f(a)", "f(g(?x), a)");
     }
 
-    static Stream<Arguments> provideTermsForOccurCheck() {
+    Stream<Arguments> provideTermsForOccurCheck() {
         return Stream.of(
                 Arguments.of("?x", "?x", true),
                 Arguments.of("?x", "f(?x)", true),

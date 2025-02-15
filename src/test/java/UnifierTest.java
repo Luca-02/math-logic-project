@@ -1,6 +1,7 @@
 import model.Literal;
 import model.Term;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -10,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.Map;
 import java.util.stream.Stream;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UnifierTest {
     @ParameterizedTest(name = "{index} -> lit1={0}, lit2={1}, expected={2}")
     @MethodSource("provideLiteralsForUnification")
@@ -32,7 +34,20 @@ public class UnifierTest {
         }
     }
 
-    static Stream<Arguments> provideLiteralsForUnification() {
+    @Test
+    void testFailing() {
+        assertTrue(Unifier.isFailing(Term.parse("f(?x)"), Term.parse("g(?x)")));
+        assertTrue(Unifier.isFailing(Term.parse("f(?x)"), Term.parse("f(?x, ?y)")));
+        assertFalse(Unifier.isFailing(Term.parse("f(?x, ?y)"), Term.parse("f(?z, ?h)")));
+    }
+
+    @Test
+    void testOccurCheck() {
+        assertTrue(Unifier.occurCheck(Term.parse("?x"), Term.parse("f(?x, ?y)")));
+        assertFalse(Unifier.occurCheck(Term.parse("?x"), Term.parse("?x")));
+    }
+
+    Stream<Arguments> provideLiteralsForUnification() {
         return Stream.of(
                 Arguments.of(
                         Literal.parse("P(?x)"),
@@ -139,18 +154,5 @@ public class UnifierTest {
                         Map.of("?x", Term.parse("?y"))
                 )
         );
-    }
-
-    @Test
-    void testFailing() {
-        assertTrue(Unifier.isFailing(Term.parse("f(?x)"), Term.parse("g(?x)")));
-        assertTrue(Unifier.isFailing(Term.parse("f(?x)"), Term.parse("f(?x, ?y)")));
-        assertFalse(Unifier.isFailing(Term.parse("f(?x, ?y)"), Term.parse("f(?z, ?h)")));
-    }
-
-    @Test
-    void testOccurCheck() {
-        assertTrue(Unifier.occurCheck(Term.parse("?x"), Term.parse("f(?x, ?y)")));
-        assertFalse(Unifier.occurCheck(Term.parse("?x"), Term.parse("?x")));
     }
 }

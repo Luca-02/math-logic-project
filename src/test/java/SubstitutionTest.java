@@ -1,5 +1,7 @@
+import model.Clause;
 import model.Literal;
 import model.Term;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -9,6 +11,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SubstitutionTest {
     @ParameterizedTest(name = "{index} -> term={0}, expected={1}, substitution={2}")
     @MethodSource("provideTermsForSubstitution")
@@ -24,7 +27,14 @@ class SubstitutionTest {
         assertEquals(expected, result);
     }
 
-    static Stream<Arguments> provideTermsForSubstitution() {
+    @ParameterizedTest(name = "{index} -> clause={0}, expected={1}, substitution={2}")
+    @MethodSource("provideClausesForSubstitution")
+    void testApplySubstitutionToLiteral(Clause clause, Clause expected, Map<String, Term> substitution) {
+        Clause result = Substitution.applySubstitution(clause, substitution);
+        assertEquals(expected, result);
+    }
+
+    Stream<Arguments> provideTermsForSubstitution() {
         return Stream.of(
                 Arguments.of(
                         Term.parse("?x"),
@@ -83,12 +93,36 @@ class SubstitutionTest {
         );
     }
 
-    static Stream<Arguments> provideLiteralsForSubstitution() {
+    Stream<Arguments> provideLiteralsForSubstitution() {
         return Stream.of(
                 Arguments.of(
                         Literal.parse("P(g(?y), f(?x, h(?x), ?y))"),
                         Literal.parse("P(g(b), f(g(a), h(g(a)), b))"),
                         Map.of("?x", Term.parse("g(a)"), "?y", Term.parse("b"))
+                )
+        );
+    }
+
+    Stream<Arguments> provideClausesForSubstitution() {
+        return Stream.of(
+                Arguments.of(
+                        Clause.parse("Q(f(?x, g(?y)), ?h) =>"),
+                        Clause.parse("Q(f(?x, g(?y)), ?h) =>"),
+                        Map.of()
+                ),
+                Arguments.of(
+                        Clause.parse("Q(f(?x, g(?y)), ?h) =>"),
+                        Clause.parse("Q(f(a, g(?y)), ?h) =>"),
+                        Map.of("?x", Term.parse("a"))
+                ),
+                Arguments.of(
+                        Clause.parse("Q(f(?x, g(?y)), ?h) => P(f(?x, g(?y)), h(?z)), P(f(a, g(b)), h(c))"),
+                        Clause.parse("Q(f(a, g(b)), ?h) => P(f(a, g(b)), h(c))"),
+                        Map.of(
+                                "?x", Term.parse("a"),
+                                "?y", Term.parse("b"),
+                                "?z", Term.parse("c")
+                        )
                 )
         );
     }

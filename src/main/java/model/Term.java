@@ -1,10 +1,10 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+
+import static model.Constant.VARIABLE_IDENTIFIER;
 
 /**
  * Identify a term, so a variable or a function.
@@ -19,8 +19,8 @@ public class Term implements Cloneable {
         this.arguments = arguments;
     }
 
-    public Term(String name) {
-        this(name, new ArrayList<>());
+    public Term(String name, Term... arguments) {
+        this(name, List.of(arguments));
     }
 
     public String getName() {
@@ -36,11 +36,11 @@ public class Term implements Cloneable {
     }
 
     public boolean isConstant() {
-        return (arguments == null || arguments.isEmpty()) && !name.contains("?");
+        return arguments.isEmpty() && !name.contains(VARIABLE_IDENTIFIER);
     }
 
     public boolean isFunction() {
-        return (arguments != null && !arguments.isEmpty()) || !name.contains("?");
+        return !arguments.isEmpty() || !name.contains(VARIABLE_IDENTIFIER);
     }
 
     public boolean occurIn(Term term) {
@@ -59,8 +59,8 @@ public class Term implements Cloneable {
         }
     }
 
-    public Set<String> collectSymbols() {
-        Set<String> symbols = new HashSet<>();
+    public List<String> collectSymbols() {
+        List<String> symbols = new ArrayList<>();
         symbols.add(name);
         for (Term arg : arguments) {
             symbols.addAll(arg.collectSymbols());
@@ -89,7 +89,7 @@ public class Term implements Cloneable {
             for (Term arg : arguments) {
                 clonedArguments.add(arg.clone());
             }
-            return new Term(cloned.getName(), clonedArguments);
+            return new Term(cloned.name, clonedArguments);
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
