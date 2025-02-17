@@ -2,7 +2,11 @@ import model.Clause;
 import model.Literal;
 import model.Term;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ResolverR {
     private final Set<Clause> usable; // Us
@@ -11,7 +15,7 @@ public class ResolverR {
     public ResolverR(Set<Clause> clauses) {
         this.usable = new HashSet<>(clauses);
         this.worked = new HashSet<>();
-        reduceForward(usable);
+        initReduce(usable);
     }
 
     public boolean refute() {
@@ -64,21 +68,25 @@ public class ResolverR {
     }
 
     public Set<Clause> inferClauses(Clause given, Set<Clause> worked) {
-        Set<Clause> newClauses = new HashSet<>();
+        // Apply factorization on given clause
+        Set<Clause> newClauses = new HashSet<>(factorizeClause(given));
+
+        Clause cloneGiven = given.clone();
+        Renaming.renameClausesToDisjointVariable(given, cloneGiven);
+
+        // Resolution on literals: from given (positive) to given (negative)
+        newClauses.addAll(resolveClauses(given, cloneGiven));
 
         for (Clause c : worked) {
             // Apply renomination to make sure that the tow clause have disjoint variables
             Renaming.renameClausesToDisjointVariable(c, given);
 
-            // Resolution on literals: from given (positive) to c (negative)
+            // Resolution on literals: from given (positive) to Wo clause (negative)
             newClauses.addAll(resolveClauses(given, c));
 
-            // Resolution on literals: from c (positive) to given (negative)
+            // Resolution on literals: from c (positive) to given Wo clause (negative)
             newClauses.addAll(resolveClauses(c, given));
         }
-
-        // Apply factorization on given clause
-        newClauses.addAll(factorizeClause(given));
 
         return newClauses;
     }
@@ -148,23 +156,36 @@ public class ResolverR {
     }
 
     /**
-     * Forward Reduction: Remove tautologies and remove subsumed clauses.
+     * Initial reduction on input clauses.
      */
-    private void reduceForward(Set<Clause> clauses) {
+    private void initReduce(Set<Clause> clauses) {
         // Remove tautologies
         clauses.removeIf(Clause::isTautology);
-        // Reduce New between itself
+        // Reduce with itself
         applySubsumptionReduction(clauses, clauses);
+    }
+
+    /**
+     * Forward Reduction: Remove tautologies and remove subsumed clauses.
+     */
+    private void reduceForward(Set<Clause> newClauses) {
+        // Remove tautologies
+        newClauses.removeIf(Clause::isTautology);
+        // Reduce New between itself
+        applySubsumptionReduction(newClauses, newClauses);
         // Reduce New between Wo
-        applySubsumptionReduction(clauses, worked);
+        applySubsumptionReduction(newClauses, worked);
         // Reduce New between Us
-        applySubsumptionReduction(clauses, usable);
+        applySubsumptionReduction(newClauses, usable);
     }
 
     /**
      * Backward Reduction: Remove subsumed clauses from Us and Wo.
      */
     private void reduceBackward(Set<Clause> newClauses) {
+        // Remove tautologies
+        worked.removeIf(Clause::isTautology);
+        usable.removeIf(Clause::isTautology);
         // Reduce Wo compared to new clauses
         applySubsumptionReduction(worked, newClauses);
         // Reduce Us compared to new clauses
@@ -179,10 +200,8 @@ public class ResolverR {
 
         for (Clause ref : reference) {
             if (toRemove.contains(ref)) continue;
-
             for (Clause t : target) {
                 if (toRemove.contains(t)) continue;
-
                 if (Subsumption.isSubsumed(ref, t)) {
                     toRemove.add(t);
                 }

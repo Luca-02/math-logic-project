@@ -178,6 +178,14 @@ class ResolverRTest {
             ),
             Arguments.of(
                     Set.of(
+                            Clause.parse("P(f(?x)) =>"),
+                            Clause.parse("P(f(a)), Q(f(?x)) =>"),
+                            Clause.parse("=> P(f(a))")
+                    ),
+                    true
+            ),
+            Arguments.of(
+                    Set.of(
                             Clause.parse("R(?x, s(?x)) => Q(f(?x))"),
                             Clause.parse("=> R(c, ?y)"),
                             Clause.parse("Q(f(?y)) =>")
