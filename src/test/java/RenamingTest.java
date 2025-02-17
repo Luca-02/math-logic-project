@@ -6,17 +6,16 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class RenamerTest {
+class RenamingTest {
     @ParameterizedTest(name = "{index} -> original={0}, toRename={1}, substitutions={2}")
     @MethodSource("provideClauseForGetSubstitutionForDisjointVariables")
     void testGetSubstitutionForDisjointVariables(Clause original, Clause toRename, Map<String, Term> expected) {
-        Map<String, Term> result = Renamer.getSubstitutionForDisjointVariables(original, toRename);
+        Map<String, Term> result = Renaming.getSubstitutionForDisjointVariables(original, toRename);
 
         assertEquals(expected, result);
     }
@@ -24,7 +23,7 @@ class RenamerTest {
     @ParameterizedTest(name = "{index} -> original={0}, toRename={1}, substitutions={2}")
     @MethodSource("provideClauseForRenameClausesToDisjointVariable")
     void testRenameClausesToDisjointVariable(Clause original, Clause toRename, Clause expected) {
-        Renamer.renameClausesToDisjointVariable(original, toRename);
+        Renaming.renameClausesToDisjointVariable(original, toRename);
 
         assertEquals(expected, toRename);
     }

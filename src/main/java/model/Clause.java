@@ -43,6 +43,13 @@ public class Clause implements Cloneable, Comparable<Clause> {
         return positiveLiterals;
     }
 
+    public Set<Literal> getAllLiterals() {
+        Set<Literal> allLiterals = new HashSet<>();
+        allLiterals.addAll(negativeLiterals);
+        allLiterals.addAll(positiveLiterals);
+        return allLiterals;
+    }
+
     public boolean isTautology() {
         for (Literal lit : positiveLiterals) {
             if (negativeLiterals.contains(lit.negate())) {

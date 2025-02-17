@@ -15,11 +15,12 @@ public class ResolverR {
     }
 
     public boolean refute() {
-        if (refutationReached()) {
-            return true;
-        }
+        do {
+            // Returns true if we found a refutation.
+            if (refutationReached()) {
+                return true;
+            }
 
-        while (!usable.isEmpty()) {
             // 1. Select the given clause
             Clause given = selectGivenClause();
             worked.add(given);
@@ -32,16 +33,11 @@ public class ResolverR {
             reduceForward(newClauses);
 
             // 4. Apply backwards reductions on olds clauses in Us and Wo with the new ones
-            reduceBackward(usable, worked, newClauses);
+            reduceBackward(newClauses);
 
             // 5. Add the new clauses to Us
             usable.addAll(newClauses);
-
-            // Returns true if we found a refutation.
-            if (refutationReached()) {
-                return true;
-            }
-        }
+        } while (!usable.isEmpty());
 
         // Return false to indicate that it did not find a refutation, so it is satisfiable
         return false;
@@ -72,7 +68,7 @@ public class ResolverR {
 
         for (Clause c : worked) {
             // Apply renomination to make sure that the tow clause have disjoint variables
-            Renamer.renameClausesToDisjointVariable(c, given);
+            Renaming.renameClausesToDisjointVariable(c, given);
 
             // Resolution on literals: from given (positive) to c (negative)
             newClauses.addAll(resolveClauses(given, c));
@@ -95,6 +91,7 @@ public class ResolverR {
         for (Literal pos : clauseWithPos.getPositiveLiterals()) {
             for (Literal neg : clauseWithNeg.getNegativeLiterals()) {
                 Clause resolvent = resolveClauses(clauseWithPos, clauseWithNeg, pos, neg);
+
                 if (resolvent != null) {
                     resolutions.add(resolvent);
                 }
@@ -107,7 +104,7 @@ public class ResolverR {
      * Resolution of two clauses with the given literals for which we have done the unification
      */
     public Clause resolveClauses(Clause clauseWithPos, Clause clauseWithNeg, Literal posToDelete, Literal negToDelete) {
-        Map<String, Term> mgu = Unifier.unify(posToDelete, negToDelete);
+        Map<String, Term> mgu = Unification.unify(posToDelete, negToDelete);
 
         if (mgu != null) {
             Clause clauseWithPosClone = clauseWithPos.clone();
@@ -137,7 +134,7 @@ public class ResolverR {
         List<Literal> posList = new ArrayList<>(clause.getPositiveLiterals());
         for (int i = 0; i < posList.size(); i++) {
             for (int j = i + 1; j < posList.size(); j++) {
-                var mgu = Unifier.unify(posList.get(i), posList.get(j));
+                Map<String, Term> mgu = Unification.unify(posList.get(i), posList.get(j));
                 if (mgu != null) {
                     // By applying the substitution on the clause, it will automatically merge
                     // the literals A and B on which the unification has been done through the mgu
@@ -150,16 +147,48 @@ public class ResolverR {
         return factorizations;
     }
 
-    private static void reduceForward(Set<Clause> clauses) {
+    /**
+     * Forward Reduction: Remove tautologies and remove subsumed clauses.
+     */
+    private void reduceForward(Set<Clause> clauses) {
+        // Remove tautologies
         clauses.removeIf(Clause::isTautology);
-        // TODO: Si potrebbe applicare qui la sussunzione e la Matching Replacement Resolution
+        // Reduce New between itself
+        applySubsumptionReduction(clauses, clauses);
+        // Reduce New between Wo
+        applySubsumptionReduction(clauses, worked);
+        // Reduce New between Us
+        applySubsumptionReduction(clauses, usable);
     }
 
-    private static void reduceBackward(Set<Clause> usable, Set<Clause> worked, Set<Clause> newClauses) {
-        // If a clause in Wo is subsumed by a clause in newClauses, remove it.
-//        for (Clause newC : newClauses) {
-//            usable.removeIf(existing -> newC.subsumes(existing));
-//            worked.removeIf(existing -> newC.subsumes(existing));
-//        }
+    /**
+     * Backward Reduction: Remove subsumed clauses from Us and Wo.
+     */
+    private void reduceBackward(Set<Clause> newClauses) {
+        // Reduce Wo compared to new clauses
+        applySubsumptionReduction(worked, newClauses);
+        // Reduce Us compared to new clauses
+        applySubsumptionReduction(usable, newClauses);
+    }
+
+    /**
+     * Helper function to remove subsumed clauses in target using clauses in reference.
+     */
+    private void applySubsumptionReduction(Set<Clause> target, Set<Clause> reference) {
+        Set<Clause> toRemove = new HashSet<>();
+
+        for (Clause ref : reference) {
+            if (toRemove.contains(ref)) continue;
+
+            for (Clause t : target) {
+                if (toRemove.contains(t)) continue;
+
+                if (Subsumption.isSubsumed(ref, t)) {
+                    toRemove.add(t);
+                }
+            }
+        }
+
+        target.removeAll(toRemove);
     }
 }

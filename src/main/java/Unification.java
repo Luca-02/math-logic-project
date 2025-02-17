@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class Unifier {
+public class Unification {
     /**
      * Tests whether substitutions applied to two literals make them unify correctly.
      */

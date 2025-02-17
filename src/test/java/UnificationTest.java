@@ -12,11 +12,11 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class UnifierTest {
+public class UnificationTest {
     @ParameterizedTest(name = "{index} -> lit1={0}, lit2={1}, expected={2}")
     @MethodSource("provideLiteralsForUnification")
     void testUnification(Literal lit1, Literal lit2, Map<String, Term> expected) {
-        Map<String, Term> substitutions = Unifier.unify(lit1, lit2);
+        Map<String, Term> substitutions = Unification.unify(lit1, lit2);
 
         if (expected == null) {
             assertNull(substitutions);
@@ -26,14 +26,14 @@ public class UnifierTest {
 
             // From theory, we know that a unification is correct if and only if
             // it outputs two equal literals when applied to the initial literals.
-            assertTrue(Unifier.unificationCorrectness(lit1, lit2, substitutions));
+            assertTrue(Unification.unificationCorrectness(lit1, lit2, substitutions));
         }
     }
 
     @ParameterizedTest(name = "{index} -> lit1={0}, lit2={1}, expected={2}")
     @MethodSource("provideLiteralsForMatching")
     void testMatching(Literal lit1, Literal lit2, Map<String, Term> expected) {
-        Map<String, Term> substitutions = Unifier.match(lit1, lit2);
+        Map<String, Term> substitutions = Unification.match(lit1, lit2);
 
         if (expected == null) {
             assertNull(substitutions);
@@ -43,21 +43,21 @@ public class UnifierTest {
 
             // From theory, we know that a matching is correct if and only if
             // it outputs two equal literals when applied to the left initial literals.
-            assertTrue(Unifier.matchingCorrectness(lit1, lit2, substitutions));
+            assertTrue(Unification.matchingCorrectness(lit1, lit2, substitutions));
         }
     }
 
     @Test
     void testFailing() {
-        assertTrue(Unifier.isFailing(Term.parse("f(?x)"), Term.parse("g(?x)")));
-        assertTrue(Unifier.isFailing(Term.parse("f(?x)"), Term.parse("f(?x, ?y)")));
-        assertFalse(Unifier.isFailing(Term.parse("f(?x, ?y)"), Term.parse("f(?z, ?h)")));
+        assertTrue(Unification.isFailing(Term.parse("f(?x)"), Term.parse("g(?x)")));
+        assertTrue(Unification.isFailing(Term.parse("f(?x)"), Term.parse("f(?x, ?y)")));
+        assertFalse(Unification.isFailing(Term.parse("f(?x, ?y)"), Term.parse("f(?z, ?h)")));
     }
 
     @Test
     void testOccurCheck() {
-        assertTrue(Unifier.occurCheck(Term.parse("?x"), Term.parse("f(?x, ?y)")));
-        assertFalse(Unifier.occurCheck(Term.parse("?x"), Term.parse("?x")));
+        assertTrue(Unification.occurCheck(Term.parse("?x"), Term.parse("f(?x, ?y)")));
+        assertFalse(Unification.occurCheck(Term.parse("?x"), Term.parse("?x")));
     }
 
     Stream<Arguments> provideLiteralsForUnification() {

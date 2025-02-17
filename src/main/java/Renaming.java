@@ -8,7 +8,7 @@ import java.util.Set;
 
 import static global.Constant.RENAMING_VARIABLE_SYMBOL;
 
-public class Renamer {
+public class Renaming {
     /**
      * Rename the clause variables so that they have disjoint variables
      * between them.

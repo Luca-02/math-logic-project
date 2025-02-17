@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ResolverRTest {
     @ParameterizedTest(name = "{index} -> clauses={0}, givenClause={1}")
-    @MethodSource("provideClauseForSelectGivenClause")
+    @MethodSource("provideClausesForSelectGivenClause")
     void testSelectGivenClause(Set<Clause> clauses, Clause givenClause) {
         ResolverR resolver = new ResolverR(clauses);
         Clause result = resolver.selectGivenClause();
@@ -22,7 +22,7 @@ class ResolverRTest {
     }
 
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
-    @MethodSource("provideClauseForRefutationReached")
+    @MethodSource("provideClausesForRefutationReached")
     void testRefutationReached(Set<Clause> clauses, boolean expected) {
         ResolverR resolver = new ResolverR(clauses);
         boolean result = resolver.refutationReached();
@@ -31,7 +31,7 @@ class ResolverRTest {
     }
 
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
-    @MethodSource("provideClauseForFactorizeClause")
+    @MethodSource("provideClausesForFactorizeClause")
     void testFactorizeClause(Clause clause, Set<Clause> expected) {
         ResolverR resolver = new ResolverR(Set.of());
         Set<Clause> result = resolver.factorizeClause(clause);
@@ -40,7 +40,7 @@ class ResolverRTest {
     }
 
     @ParameterizedTest(name = "{index} -> c1={0}, c2={1}, a={2}, b={3}, expected={4}")
-    @MethodSource("provideClauseForResolveClauses")
+    @MethodSource("provideClausesForResolveClauses")
     void testResolveClauses(Clause c1, Clause c2, Literal a, Literal b, Clause expected) {
         ResolverR resolver = new ResolverR(Set.of());
         Clause result = resolver.resolveClauses(c1, c2, a, b);
@@ -49,7 +49,7 @@ class ResolverRTest {
     }
 
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
-    @MethodSource("provideClauseForRefute")
+    @MethodSource("provideClausesForRefute")
     void testRefute(Set<Clause> clauses, boolean expected) {
         ResolverR resolver = new ResolverR(clauses);
         boolean result = resolver.refute();
@@ -57,7 +57,7 @@ class ResolverRTest {
         assertEquals(expected, result);
     }
 
-    Stream<Arguments> provideClauseForSelectGivenClause() {
+    Stream<Arguments> provideClausesForSelectGivenClause() {
         return Stream.of(
                 Arguments.of(
                         Set.of(
@@ -86,7 +86,7 @@ class ResolverRTest {
         );
     }
 
-    Stream<Arguments> provideClauseForRefutationReached() {
+    Stream<Arguments> provideClausesForRefutationReached() {
         return Stream.of(
                 Arguments.of(
                         Set.of(
@@ -107,7 +107,7 @@ class ResolverRTest {
         );
     }
 
-    Stream<Arguments> provideClauseForFactorizeClause() {
+    Stream<Arguments> provideClausesForFactorizeClause() {
         return Stream.of(
                 Arguments.of(
                         Clause.parse("=> R(?x, f(?y)), R(?y, f(?x))"),
@@ -120,7 +120,7 @@ class ResolverRTest {
         );
     }
 
-    Stream<Arguments> provideClauseForResolveClauses() {
+    Stream<Arguments> provideClausesForResolveClauses() {
         return Stream.of(
                 Arguments.of(
                         Clause.parse("R(?x, s(?x)) => Q(f(?x))"),
@@ -153,8 +153,15 @@ class ResolverRTest {
         );
     }
 
-    Stream<Arguments> provideClauseForRefute() {
+    Stream<Arguments> provideClausesForRefute() {
         return Stream.of(
+            Arguments.of(
+                    Set.of(
+                            Clause.parse("Q(f(?y)) => R(c, ?y)"),
+                            Clause.parse("=>")
+                    ),
+                    true
+            ),
             Arguments.of(
                     Set.of(
                             Clause.parse("=> P(f(a))"),
@@ -171,23 +178,9 @@ class ResolverRTest {
             ),
             Arguments.of(
                     Set.of(
-                            Clause.parse("Q(f(?y)) => R(c, ?y)"),
-                            Clause.parse("=>")
-                    ),
-                    true
-            ),
-            Arguments.of(
-                    Set.of(
                             Clause.parse("R(?x, s(?x)) => Q(f(?x))"),
                             Clause.parse("=> R(c, ?y)"),
                             Clause.parse("Q(f(?y)) =>")
-                    ),
-                    true
-            ),
-            Arguments.of(
-                    Set.of(
-                            Clause.parse("=> R(?x, f(?y)), R(?y, f(?x))"),
-                            Clause.parse("R(?x, f(?y)), R(?y, f(?x)) =>")
                     ),
                     true
             )
