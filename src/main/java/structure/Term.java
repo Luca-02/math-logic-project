@@ -1,4 +1,4 @@
-package model;
+package structure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,7 @@ import static global.Constant.VARIABLE_IDENTIFIER;
  * Identify a term, so a variable or a function.
  * A special function of arity 0 is a constant.
  */
-public class Term implements Cloneable {
+public class Term implements LogicalStructure {
     private final String name;
     private final List<Term> arguments;
 

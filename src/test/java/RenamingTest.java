@@ -1,5 +1,5 @@
-import model.Clause;
-import model.Term;
+import structure.Clause;
+import structure.Term;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

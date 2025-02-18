@@ -1,6 +1,6 @@
-import model.Equation;
-import model.Literal;
-import model.Term;
+import structure.Equation;
+import structure.Literal;
+import structure.Term;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +40,7 @@ public class Unification {
 
     /**
      * Unify two literals. Returns a substitution map if unification succeeds,
-     * otherwise returns null.
+     * otherwise returns {@code null}.
      */
     public static Map<String, Term> unify(Literal l1, Literal l2) {
         return unifyOrMatch(l1, l2, true);
@@ -48,7 +48,7 @@ public class Unification {
 
     /**
      * Matching two literals. Returns a substitution map if the match is successful,
-     * otherwise returns null.
+     * otherwise returns {@code null}.
      */
     public static Map<String, Term> match(Literal l1, Literal l2) {
         return unifyOrMatch(l1, l2, false);
@@ -132,7 +132,7 @@ public class Unification {
     }
 
     /**
-     * Rule 5: fail if f(t1, ..., tn) ?= g(u1, ..., um) with f != g (or n != m).
+     * Rule 5: fail if {@code f(t1, ..., tn) ?= g(u1, ..., um)} with {@code f != g (or n != m)}.
      */
     public static boolean isFailing(Term t1, Term t2) {
         return !t1.getName().equals(t2.getName()) ||
@@ -140,7 +140,7 @@ public class Unification {
     }
 
     /**
-     * Rule 6: fail if x ?= t with x != t but x occurring in t.
+     * Rule 6: fail if {@code x ?= t with x != t} but {@code x} occurring in {@code t}.
      */
     public static boolean occurCheck(Term t1, Term t2) {
         return !t1.equals(t2) && t1.occurIn(t2);

@@ -1,19 +1,20 @@
-import model.Clause;
-import model.Literal;
-import model.Term;
+import structure.Clause;
+import structure.Literal;
+import structure.Term;
 
 import java.util.Map;
 
 public class Subsumption {
     /**
-     * Check whether clause 1 subsumes clause 2.
+     * Check whether {@code clause1} subsumes {@code clause2}. The clause {@code Γ => ∆} subsumes the clause
+     * {@code Γ' => ∆'} iff for a matcher {@code σ} we have {@code Γσ ⊆ Γ'} and {@code ∆σ ⊆ ∆'}.
      */
     public static boolean isSubsumed(Clause clause1, Clause clause2) {
         for (Literal lit1 : clause1.getAllLiterals()) {
             for (Literal lit2 : clause2.getAllLiterals()) {
-                Map<String, Term> substitution = Unification.match(lit1, lit2);
+                Map<String, Term> sigma = Unification.match(lit1, lit2);
 
-                if (checkSubsumption(clause1, clause2, substitution)) {
+                if (checkSubsumption(clause1, clause2, sigma)) {
                     return true;
                 }
             }
@@ -22,8 +23,8 @@ public class Subsumption {
     }
 
     /**
-     * Checks whether the literals set of clause1 (with a substitution)
-     * is contained in the literals set of clause 2.
+     * Checks whether the literals set of {@code clause1} (with a substitution)
+     * is contained in the literals set of {@code clause2}.
      */
     private static boolean checkSubsumption(Clause clause1, Clause clause2, Map<String, Term> substitution) {
         if (substitution != null) {

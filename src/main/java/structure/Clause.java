@@ -1,4 +1,4 @@
-package model;
+package structure;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,7 +15,7 @@ import static global.Constant.CLAUSE_LITERALS_DIVISOR;
  * Represent a clause, a disjunction of literals.
  * It's represented by the two sets of negatives and positives literals.
  */
-public class Clause implements Cloneable, Comparable<Clause> {
+public class Clause implements LogicalStructure, Comparable<Clause> {
     private final Set<Literal> negativeLiterals;
     private final Set<Literal> positiveLiterals;
 
@@ -74,10 +74,10 @@ public class Clause implements Cloneable, Comparable<Clause> {
         return symbols;
     }
 
-    public void update(Clause clause) {
+    public void replace(Clause clause) {
         negativeLiterals.clear();
-        positiveLiterals.clear();
         negativeLiterals.addAll(clause.getNegativeLiterals());
+        positiveLiterals.clear();
         positiveLiterals.addAll(clause.getPositiveLiterals());
     }
 
@@ -113,7 +113,7 @@ public class Clause implements Cloneable, Comparable<Clause> {
 
     @Override
     public int compareTo(Clause o) {
-        // Compare by number of distinct symbols
+        // Compare by number of symbols
         return Integer.compare(collectSymbols().size(), o.collectSymbols().size());
     }
 

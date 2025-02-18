@@ -1,5 +1,5 @@
-import model.Clause;
-import model.Term;
+import structure.Clause;
+import structure.Term;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,7 +17,7 @@ public class Renaming {
         Map<String, Term> substitutions = getSubstitutionForDisjointVariables(original, toRename);
 
         if (substitutions != null) {
-            toRename.update(Substitution.applySubstitution(toRename, substitutions));
+            toRename.replace(Substitution.applySubstitution(toRename, substitutions));
         }
     }
 

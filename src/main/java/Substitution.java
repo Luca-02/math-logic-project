@@ -1,6 +1,6 @@
-import model.Clause;
-import model.Literal;
-import model.Term;
+import structure.Clause;
+import structure.Literal;
+import structure.Term;
 
 import java.util.HashSet;
 import java.util.List;

@@ -1,4 +1,4 @@
-package model;
+package structure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,7 @@ import static global.Constant.NOT_SYMBOL;
  * Identify a literal (atomic formula) P(t1, ..., tn),
  * where P is a predicate and each ti a term.
  */
-public class Literal implements Cloneable {
+public class Literal implements LogicalStructure {
     private boolean isNegated;
     private final String predicate;
     private final List<Term> terms;

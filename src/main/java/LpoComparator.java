@@ -1,18 +1,19 @@
-package model;
+import structure.Term;
 
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Given a precedence relation < on Σ we define <lpo as the smallest relation on trees that satisfies
- * s = f(s1, ..., sn) <lpo t = g(t1, ..., tm) iff at least one of the following holds:
- * 1. f < g and for all i, ∈ {1, ...,n} si <lpo t
- * 2. f = g and there exists k ∈ {1, ..., n} s.t. for all i < k si = ti, sk < tk and for
- * all j ∈ {k + 1, ..., n} sj <lpo t
- * 3. s ≤lpo ti, for some i ∈ {1, ..., n}
- * where s ≤lpo t is shorthand for "s = t or s <lpo t".
- */
 public class LpoComparator implements Comparator<Term> {
+    /**
+     * Given a precedence relation {@code <} on {@code Σ} we define {@code <lpo} as the smallest relation on trees that satisfies
+     * {@code s = f(s1, ..., sn) <lpo t = g(t1, ..., tm)} iff at least one of the following holds:
+     * <ul>
+     * <li> {@code f < g} and {@code for all i ∈ {1, ...,n} si <lpo t} </li>
+     * <li> {@code f = g} and {@code there exists k ∈ {1, ..., n} s.t. for all i < k si = ti, sk < tk and for all j ∈ {k + 1, ..., n} sj <lpo t} </li>
+     * <li> {@code s ≤lpo ti for some i ∈ {1, ..., n}} </li>
+     * </ul>
+     * where {@code s <=lpo t} is shorthand for {@code s = t or s <lpo t}.
+     */
     @Override
     public int compare(Term s, Term t) {
         if (s.equals(t)) return 0;
