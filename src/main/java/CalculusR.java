@@ -1,6 +1,6 @@
-import model.Clause;
-import model.Literal;
-import model.Term;
+import structure.Clause;
+import structure.Literal;
+import structure.Term;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -8,14 +8,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ResolverR {
+public class CalculusR {
     private final Set<Clause> usable; // Us
     private final Set<Clause> worked; // Wo
 
-    public ResolverR(Set<Clause> clauses) {
+    public CalculusR(Set<Clause> clauses) {
         this.usable = new HashSet<>(clauses);
         this.worked = new HashSet<>();
-        initReduce(usable);
+        Reduction.removeTautology(usable);
+        Reduction.subsumptionReduction(usable);
+        Reduction.matchingReplacementResolution(usable, usable);
     }
 
     public boolean refute() {
@@ -34,12 +36,17 @@ public class ResolverR {
             Set<Clause> newClauses = inferClauses(given, worked);
 
             // 3. Apply forward reductions on new clauses
-            reduceForward(newClauses);
+            Reduction.removeTautology(newClauses);
+            Reduction.subsumptionReduction(newClauses);
+            Reduction.matchingReplacementResolution(newClauses, newClauses);
+            Reduction.matchingReplacementResolution(worked, newClauses);
+            Reduction.matchingReplacementResolution(usable, newClauses);
 
             // 4. Apply backwards reductions on olds clauses in Us and Wo with the new ones
-            reduceBackward(newClauses);
+            Reduction.matchingReplacementResolution(newClauses, worked);
+            Reduction.matchingReplacementResolution(newClauses, usable);
 
-            // 5. Add the new clauses to Us
+            // 4. Add the new clauses to Us
             usable.addAll(newClauses);
         } while (!usable.isEmpty());
 
@@ -48,7 +55,8 @@ public class ResolverR {
     }
 
     /**
-     * Select the minimum clause by number of literals
+     * Select the given clause by means of an appropriate choice function
+     * (in this case the clause with the minimum number of symbols).
      */
     public Clause selectGivenClause() {
         Clause given = null;
@@ -61,13 +69,16 @@ public class ResolverR {
     }
 
     /**
-     * Check if we have reached a refutation
+     * If {@code Us} contains an empty clause we have reached a refutation.
      */
     public boolean refutationReached() {
         return usable.stream().anyMatch(Clause::isEmpty);
     }
 
-    public Set<Clause> inferClauses(Clause given, Set<Clause> worked) {
+    /**
+     * Apply all possible inference between given clause and the clauses in {@code Wo}.
+     */
+    private Set<Clause> inferClauses(Clause given, Set<Clause> worked) {
         // Apply factorization on given clause
         Set<Clause> newClauses = new HashSet<>(factorizeClause(given));
 
@@ -94,7 +105,7 @@ public class ResolverR {
     /**
      * Resolution of two clauses, possibly renamed to have disjoint variables
      */
-    public Set<Clause> resolveClauses(Clause clauseWithPos, Clause clauseWithNeg) {
+    private Set<Clause> resolveClauses(Clause clauseWithPos, Clause clauseWithNeg) {
         Set<Clause> resolutions = new HashSet<>();
         for (Literal pos : clauseWithPos.getPositiveLiterals()) {
             for (Literal neg : clauseWithNeg.getNegativeLiterals()) {
@@ -153,61 +164,5 @@ public class ResolverR {
         }
 
         return factorizations;
-    }
-
-    /**
-     * Initial reduction on input clauses.
-     */
-    private void initReduce(Set<Clause> clauses) {
-        // Remove tautologies
-        clauses.removeIf(Clause::isTautology);
-        // Reduce with itself
-        applySubsumptionReduction(clauses, clauses);
-    }
-
-    /**
-     * Forward Reduction: Remove tautologies and remove subsumed clauses.
-     */
-    private void reduceForward(Set<Clause> newClauses) {
-        // Remove tautologies
-        newClauses.removeIf(Clause::isTautology);
-        // Reduce New between itself
-        applySubsumptionReduction(newClauses, newClauses);
-        // Reduce New between Wo
-        applySubsumptionReduction(newClauses, worked);
-        // Reduce New between Us
-        applySubsumptionReduction(newClauses, usable);
-    }
-
-    /**
-     * Backward Reduction: Remove subsumed clauses from Us and Wo.
-     */
-    private void reduceBackward(Set<Clause> newClauses) {
-        // Remove tautologies
-        worked.removeIf(Clause::isTautology);
-        usable.removeIf(Clause::isTautology);
-        // Reduce Wo compared to new clauses
-        applySubsumptionReduction(worked, newClauses);
-        // Reduce Us compared to new clauses
-        applySubsumptionReduction(usable, newClauses);
-    }
-
-    /**
-     * Helper function to remove subsumed clauses in target using clauses in reference.
-     */
-    private void applySubsumptionReduction(Set<Clause> target, Set<Clause> reference) {
-        Set<Clause> toRemove = new HashSet<>();
-
-        for (Clause ref : reference) {
-            if (toRemove.contains(ref)) continue;
-            for (Clause t : target) {
-                if (toRemove.contains(t)) continue;
-                if (Subsumption.isSubsumed(ref, t)) {
-                    toRemove.add(t);
-                }
-            }
-        }
-
-        target.removeAll(toRemove);
     }
 }

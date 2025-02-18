@@ -1,5 +1,5 @@
-import model.Clause;
-import model.Literal;
+import structure.Clause;
+import structure.Literal;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -11,11 +11,11 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class ResolverRTest {
+class CalculusRTest {
     @ParameterizedTest(name = "{index} -> clauses={0}, givenClause={1}")
     @MethodSource("provideClausesForSelectGivenClause")
     void testSelectGivenClause(Set<Clause> clauses, Clause givenClause) {
-        ResolverR resolver = new ResolverR(clauses);
+        CalculusR resolver = new CalculusR(clauses);
         Clause result = resolver.selectGivenClause();
 
         assertEquals(givenClause, result);
@@ -24,7 +24,7 @@ class ResolverRTest {
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
     @MethodSource("provideClausesForRefutationReached")
     void testRefutationReached(Set<Clause> clauses, boolean expected) {
-        ResolverR resolver = new ResolverR(clauses);
+        CalculusR resolver = new CalculusR(clauses);
         boolean result = resolver.refutationReached();
 
         assertEquals(expected, result);
@@ -33,7 +33,7 @@ class ResolverRTest {
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
     @MethodSource("provideClausesForFactorizeClause")
     void testFactorizeClause(Clause clause, Set<Clause> expected) {
-        ResolverR resolver = new ResolverR(Set.of());
+        CalculusR resolver = new CalculusR(Set.of());
         Set<Clause> result = resolver.factorizeClause(clause);
 
         assertEquals(expected, result);
@@ -42,7 +42,7 @@ class ResolverRTest {
     @ParameterizedTest(name = "{index} -> c1={0}, c2={1}, a={2}, b={3}, expected={4}")
     @MethodSource("provideClausesForResolveClauses")
     void testResolveClauses(Clause c1, Clause c2, Literal a, Literal b, Clause expected) {
-        ResolverR resolver = new ResolverR(Set.of());
+        CalculusR resolver = new CalculusR(Set.of());
         Clause result = resolver.resolveClauses(c1, c2, a, b);
 
         assertEquals(expected, result);
@@ -51,7 +51,7 @@ class ResolverRTest {
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
     @MethodSource("provideClausesForRefute")
     void testRefute(Set<Clause> clauses, boolean expected) {
-        ResolverR resolver = new ResolverR(clauses);
+        CalculusR resolver = new CalculusR(clauses);
         boolean result = resolver.refute();
 
         assertEquals(expected, result);
@@ -189,6 +189,13 @@ class ResolverRTest {
                             Clause.parse("R(?x, s(?x)) => Q(f(?x))"),
                             Clause.parse("=> R(c, ?y)"),
                             Clause.parse("Q(f(?y)) =>")
+                    ),
+                    true
+            ),
+            Arguments.of(
+                    Set.of(
+                            Clause.parse("=> R(?x, f(?y)), R(?y, f(?x))"),
+                            Clause.parse("R(?x, f(?y)), R(?y, f(?x)) =>")
                     ),
                     true
             )
