@@ -20,12 +20,12 @@ public class LpoComparator implements Comparator<Term> {
         if (t == Term.MINIMAL) return 1;
         if (s.equals(t)) return 0;
 
-        // Two variables can be compared lexicographically
+        // Variables are considered equals
         if (s.isVariable() && t.isVariable()) {
-            return s.getName().compareTo(t.getName());
+            return 0;
         }
 
-        // A variable is considered less than a function
+        // Variable is always considered less than a function
         if (s.isVariable()) return -1;
         if (t.isVariable()) return 1;
 

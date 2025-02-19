@@ -24,7 +24,7 @@ class LpoComparatorTest {
         return Stream.of(
                 Arguments.of(Term.parse("?x"), Term.parse("?x"), 0),
                 Arguments.of(Term.parse("f(g(a), h(a))"), Term.parse("f(g(a), h(a))"), 0),
-                Arguments.of(Term.parse("?a"), Term.parse("?b"), -1),
+                Arguments.of(Term.parse("?a"), Term.parse("?b"), 0),
                 Arguments.of(Term.parse("?x"), Term.parse("f(a)"), -1),
                 Arguments.of(Term.parse("f(a)"), Term.parse("g(b)"), -1),
                 Arguments.of(Term.parse("f(a, b)"), Term.parse("g(b, c)"), -1),
