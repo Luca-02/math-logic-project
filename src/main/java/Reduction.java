@@ -24,7 +24,6 @@ public class Reduction {
                 if (toRemove.contains(target)) continue;
 
                 if (Subsumption.isSubsumed(ref, target)) {
-                    System.out.println(target);
                     toRemove.add(target);
                 }
             }

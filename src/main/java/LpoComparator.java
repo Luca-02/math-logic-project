@@ -16,6 +16,8 @@ public class LpoComparator implements Comparator<Term> {
      */
     @Override
     public int compare(Term s, Term t) {
+        if (s == Term.MINIMAL) return -1;
+        if (t == Term.MINIMAL) return 1;
         if (s.equals(t)) return 0;
 
         // Two variables can be compared lexicographically

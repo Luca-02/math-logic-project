@@ -143,6 +143,10 @@ public class Clause implements LogicalStructure, Comparable<Clause> {
     }
 
     public static Clause parse(String input) {
+        if (input == null || input.isEmpty()) {
+            throw new RuntimeException("Clause cannot be empty");
+        }
+
         input = input.replaceAll("\\s+", "");
 
         String[] parts = input.split(CLAUSE_LITERALS_DIVISOR, 2);

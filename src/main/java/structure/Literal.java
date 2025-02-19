@@ -1,8 +1,6 @@
 package structure;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static global.Constant.NOT_SYMBOL;
 
@@ -37,10 +35,22 @@ public class Literal implements LogicalStructure {
         return terms;
     }
 
-    public Literal negate() {
-        Literal clone = clone();
-        clone.isNegated = !isNegated;
-        return clone;
+    public boolean isIdentity() {
+        return predicate.equals("=") && terms.size() == 2;
+    }
+
+    public Map<Term, Integer> getMultiset() {
+        Map<Term, Integer> multiset = new HashMap<>();
+
+        if (isIdentity()) {
+            multiset.put(terms.get(0), isNegated() ? 2 : 1);
+            multiset.put(terms.get(1), isNegated() ? 2 : 1);
+        } else {
+            multiset.put(new Term(predicate, terms), isNegated() ? 2 : 1);
+            multiset.put(Term.MINIMAL, isNegated() ? 2 : 1);
+        }
+
+        return multiset;
     }
 
     public List<String> collectSymbols() {
@@ -50,6 +60,12 @@ public class Literal implements LogicalStructure {
             symbols.addAll(term.collectSymbols());
         }
         return symbols;
+    }
+
+    public Literal negate() {
+        Literal clone = clone();
+        clone.isNegated = !isNegated;
+        return clone;
     }
 
     @Override
@@ -87,6 +103,10 @@ public class Literal implements LogicalStructure {
     }
 
     public static Literal parse(String input) {
+        if (input == null || input.isEmpty()) {
+            throw new RuntimeException("Literal cannot be empty");
+        }
+
         input = input.replaceAll("\\s+", "");
 
         boolean isNegated = input.startsWith("¬");
@@ -94,7 +114,7 @@ public class Literal implements LogicalStructure {
             input = input.substring(1);
         }
 
-        if (!input.contains("(")) {
+        if (!input.contains("(") || !input.contains(")")) {
             return new Literal(isNegated, input);
         }
 

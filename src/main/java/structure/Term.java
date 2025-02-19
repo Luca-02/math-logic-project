@@ -11,6 +11,11 @@ import static global.Constant.VARIABLE_IDENTIFIER;
  * A special function of arity 0 is a constant.
  */
 public class Term implements LogicalStructure {
+    /**
+     * Minimum term in the ordering of terms.
+     */
+    public static final Term MINIMAL = new Term("true");
+
     private final String name;
     private final List<Term> arguments;
 
@@ -103,11 +108,13 @@ public class Term implements LogicalStructure {
     }
 
     public static Term parse(String input) {
-        // Delete space
+        if (input == null || input.isEmpty()) {
+            throw new RuntimeException("Term cannot be empty");
+        }
+
         input = input.replaceAll("\\s+", "");
 
-        // Variable or constant
-        if (!input.contains("(")) {
+        if (!input.contains("(") || !input.contains(")")) {
             return new Term(input);
         }
 
