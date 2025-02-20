@@ -19,8 +19,8 @@ public class LpoComparator implements Comparator<Term> {
     @Override
     public int compare(Term s, Term t) {
         if (s.equals(t)) return 0;
-        if (s == Term.MINIMAL) return -1;
-        if (t == Term.MINIMAL) return 1;
+        if (s.equals(Term.MINIMAL)) return -1;
+        if (t.equals(Term.MINIMAL)) return 1;
 
         // Variables are considered equals
         if (s.isVariable() && t.isVariable()) {

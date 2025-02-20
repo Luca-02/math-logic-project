@@ -14,13 +14,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LiteralTest {
     @ParameterizedTest(name = "{index} -> literal={0}, expected={1}")
-    @MethodSource("provideLiteralsForCollectSymbols")
+    @MethodSource("provideParametersForCollectSymbols")
     void testCollectSymbols(Literal literal, int expected) {
         assertEquals(expected, literal.collectSymbols().size());
     }
 
     @ParameterizedTest(name = "{index} -> literal={0}, expected={1}")
-    @MethodSource("provideLiteralsForGetMultiset")
+    @MethodSource("provideParametersForGetMultiset")
     void testGetMultiset(Literal literal, Map<Term, Integer> expected) {
         assertEquals(expected, literal.getMultiset());
     }
@@ -75,7 +75,7 @@ class LiteralTest {
         }
     }
 
-    Stream<Arguments> provideLiteralsForCollectSymbols() {
+    Stream<Arguments> provideParametersForCollectSymbols() {
         return Stream.of(
                 Arguments.of(Literal.parse("Q(?x)"), 2),
                 Arguments.of(Literal.parse("Q(f(?x))"), 3),
@@ -85,7 +85,7 @@ class LiteralTest {
         );
     }
 
-    Stream<Arguments> provideLiteralsForGetMultiset() {
+    Stream<Arguments> provideParametersForGetMultiset() {
         return Stream.of(
                 Arguments.of(
                         Literal.parse("Q(f(g(?x), ?y))"),

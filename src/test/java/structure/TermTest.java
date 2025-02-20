@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TermTest {
     @ParameterizedTest(name = "{index} -> termStr={0}")
-    @MethodSource("provideEqualTerms")
+    @MethodSource("provideParametersForEquals")
     void testEquals(String termStr) {
         Term term1 = Term.parse(termStr);
         Term term2 = Term.parse(termStr);
@@ -22,7 +22,7 @@ public class TermTest {
     }
 
     @ParameterizedTest(name = "{index} -> termStr={0}, expected={1}, isFunction={2}")
-    @MethodSource("provideTermsForParsing")
+    @MethodSource("provideParametersForParsing")
     void testParsing(String termStr, Term expected, boolean isFunction, int symbolNumber) {
         Term term = Term.parse(termStr);
         assertEquals(expected, term);
@@ -44,14 +44,14 @@ public class TermTest {
     }
 
     @ParameterizedTest(name = "{index} -> termStr={0}")
-    @MethodSource("provideTermsForToString")
+    @MethodSource("provideParametersForToString")
     void testToString(String termStr) {
         Term term = Term.parse(termStr);
         assertEquals(termStr, term.toString());
     }
 
     @ParameterizedTest(name = "{index} -> termStr1={0}, termStr2={1}, expected={2}")
-    @MethodSource("provideTermsForOccurCheck")
+    @MethodSource("provideParametersForOccurCheck")
     void testTermOccurIn(String termStr1, String termStr2, boolean expected) {
         Term term1 = Term.parse(termStr1);
         Term term2 = Term.parse(termStr2);
@@ -72,11 +72,11 @@ public class TermTest {
         }
     }
 
-    Stream<String> provideEqualTerms() {
+    Stream<String> provideParametersForEquals() {
         return Stream.of("?x", "a", "f(?x)", "f(g(?x), a)");
     }
 
-    Stream<Arguments> provideTermsForParsing() {
+    Stream<Arguments> provideParametersForParsing() {
         return Stream.of(
                 Arguments.of("?x", new Term("?x"), false, 1),
                 Arguments.of("?x'", new Term("?x'"), false, 1),
@@ -89,11 +89,11 @@ public class TermTest {
         );
     }
 
-    Stream<String> provideTermsForToString() {
+    Stream<String> provideParametersForToString() {
         return Stream.of("?x", "a", "?f(a)", "f(g(?x), a)");
     }
 
-    Stream<Arguments> provideTermsForOccurCheck() {
+    Stream<Arguments> provideParametersForOccurCheck() {
         return Stream.of(
                 Arguments.of("?x", "?x", true),
                 Arguments.of("?x", "f(?x)", true),

@@ -21,15 +21,15 @@ class OriginalCalculusRTest {
     }
 
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
-    @MethodSource("provideClausesForFactorizeClause")
-    void testFactorizeClause(Clause clause, Set<Clause> expected) {
-        Set<Clause> result = resolver.factorizeClause(clause);
+    @MethodSource("provideParametersForFactorizeAllPossibleClause")
+    void testFactorizeAllPossibleClause(Clause clause, Set<Clause> expected) {
+        Set<Clause> result = resolver.factorizeAllPossibleClause(clause);
 
         assertEquals(expected, result);
     }
 
     @ParameterizedTest(name = "{index} -> c1={0}, c2={1}, a={2}, b={3}, expected={4}")
-    @MethodSource("provideClausesForResolveClauses")
+    @MethodSource("provideParametersForResolveClauses")
     void testResolveClauses(Clause c1, Clause c2, Literal a, Literal b, Clause expected) {
         Clause result = resolver.resolveClauses(c1, c2, a, b);
 
@@ -37,7 +37,7 @@ class OriginalCalculusRTest {
     }
 
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
-    @MethodSource("provideClausesForRefute")
+    @MethodSource("provideParametersForRefute")
     void testRefute(Set<Clause> clauses, boolean expected) {
         resolver.initClauses(clauses);
         boolean result = resolver.refute();
@@ -45,7 +45,7 @@ class OriginalCalculusRTest {
         assertEquals(expected, result);
     }
 
-    Stream<Arguments> provideClausesForFactorizeClause() {
+    Stream<Arguments> provideParametersForFactorizeAllPossibleClause() {
         return Stream.of(
                 Arguments.of(
                         Clause.parse("=> R(?x, f(?y)), R(?y, f(?x))"),
@@ -58,7 +58,7 @@ class OriginalCalculusRTest {
         );
     }
 
-    Stream<Arguments> provideClausesForResolveClauses() {
+    Stream<Arguments> provideParametersForResolveClauses() {
         return Stream.of(
                 Arguments.of(
                         Clause.parse("R(?x, s(?x)) => Q(f(?x))"),
@@ -91,7 +91,7 @@ class OriginalCalculusRTest {
         );
     }
 
-    Stream<Arguments> provideClausesForRefute() {
+    Stream<Arguments> provideParametersForRefute() {
         return Stream.of(
             Arguments.of(
                     Set.of(

@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UnificationTest {
     @ParameterizedTest(name = "{index} -> lit1={0}, lit2={1}, expected={2}")
-    @MethodSource("provideLiteralsForUnification")
+    @MethodSource("provideParametersForUnification")
     void testUnification(Literal lit1, Literal lit2, Map<String, Term> expected) {
         Map<String, Term> substitutions = Unification.unify(lit1, lit2);
 
@@ -31,7 +31,7 @@ public class UnificationTest {
     }
 
     @ParameterizedTest(name = "{index} -> lit1={0}, lit2={1}, expected={2}")
-    @MethodSource("provideLiteralsForMatching")
+    @MethodSource("provideParametersForMatching")
     void testMatching(Literal lit1, Literal lit2, Map<String, Term> expected) {
         Map<String, Term> substitutions = Unification.match(lit1, lit2);
 
@@ -60,7 +60,7 @@ public class UnificationTest {
         assertFalse(Unification.occurCheck(Term.parse("?x"), Term.parse("?x")));
     }
 
-    Stream<Arguments> provideLiteralsForUnification() {
+    Stream<Arguments> provideParametersForUnification() {
         return Stream.of(
                 Arguments.of(
                         Literal.parse("P(?x)"),
@@ -174,7 +174,7 @@ public class UnificationTest {
         );
     }
 
-    Stream<Arguments> provideLiteralsForMatching() {
+    Stream<Arguments> provideParametersForMatching() {
         return Stream.of(
                 Arguments.of(
                         Literal.parse("P(?x)"),

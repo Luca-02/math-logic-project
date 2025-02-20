@@ -11,13 +11,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SubsumptionTest {
     @ParameterizedTest(name = "{index} -> lit1={0}, lit2={1}, expected={2}")
-    @MethodSource("provideClausesForSubsumption")
+    @MethodSource("provideParametersForSubsumption")
     void testSubsumption(Clause c1, Clause c2, boolean expected) {
         boolean result = Subsumption.isSubsumed(c1, c2);
         assertEquals(expected, result);
     }
 
-    Stream<Arguments> provideClausesForSubsumption() {
+    Stream<Arguments> provideParametersForSubsumption() {
         return Stream.of(
                 Arguments.of(
                         Clause.parse("P(?x) =>"),

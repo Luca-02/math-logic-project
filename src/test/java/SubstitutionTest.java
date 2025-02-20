@@ -14,27 +14,27 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SubstitutionTest {
     @ParameterizedTest(name = "{index} -> term={0}, expected={1}, substitution={2}")
-    @MethodSource("provideTermsForSubstitution")
+    @MethodSource("provideParametersForApplySubstitutionToTerm")
     void testApplySubstitutionToTerm(Term input, Term expected, Map<String, Term> substitution) {
         Term result = Substitution.applySubstitution(input, substitution);
         assertEquals(expected, result);
     }
 
     @ParameterizedTest(name = "{index} -> literal={0}, expected={1}, substitution={2}")
-    @MethodSource("provideLiteralsForSubstitution")
+    @MethodSource("provideParametersForApplySubstitutionToLiteral")
     void testApplySubstitutionToLiteral(Literal input, Literal expected, Map<String, Term> substitution) {
         Literal result = Substitution.applySubstitution(input, substitution);
         assertEquals(expected, result);
     }
 
     @ParameterizedTest(name = "{index} -> clause={0}, expected={1}, substitution={2}")
-    @MethodSource("provideClausesForSubstitution")
-    void testApplySubstitutionToLiteral(Clause clause, Clause expected, Map<String, Term> substitution) {
+    @MethodSource("provideParametersForApplySubstitutionToClause")
+    void testApplySubstitutionToClause(Clause clause, Clause expected, Map<String, Term> substitution) {
         Clause result = Substitution.applySubstitution(clause, substitution);
         assertEquals(expected, result);
     }
 
-    Stream<Arguments> provideTermsForSubstitution() {
+    Stream<Arguments> provideParametersForApplySubstitutionToTerm() {
         return Stream.of(
                 Arguments.of(
                         Term.parse("?x"),
@@ -93,7 +93,7 @@ class SubstitutionTest {
         );
     }
 
-    Stream<Arguments> provideLiteralsForSubstitution() {
+    Stream<Arguments> provideParametersForApplySubstitutionToLiteral() {
         return Stream.of(
                 Arguments.of(
                         Literal.parse("P(g(?y), f(?x, h(?x), ?y))"),
@@ -103,7 +103,7 @@ class SubstitutionTest {
         );
     }
 
-    Stream<Arguments> provideClausesForSubstitution() {
+    Stream<Arguments> provideParametersForApplySubstitutionToClause() {
         return Stream.of(
                 Arguments.of(
                         Clause.parse("Q(f(?x, g(?y)), ?h) =>"),

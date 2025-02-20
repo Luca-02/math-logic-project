@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ReductionTest {
     @ParameterizedTest(name = "{index} -> original={0}, expected={1}")
-    @MethodSource("provideClausesForRemoveTautology")
+    @MethodSource("provideParametersForRemoveTautology")
     void testRemoveTautology(Set<Clause> original, Set<Clause> expected) {
         Reduction.removeTautology(original);
 
@@ -21,14 +21,14 @@ class ReductionTest {
     }
 
     @ParameterizedTest(name = "{index} -> original={0}, expected={1}")
-    @MethodSource("provideClausesForSubsumptionReduction")
+    @MethodSource("provideParametersForSubsumptionReduction")
     void testSubsumptionReduction(Set<Clause> original, Set<Clause> expected) {
         Reduction.subsumptionReduction(original);
 
         assertEquals(expected, original);
     }
 
-    Stream<Arguments> provideClausesForRemoveTautology() {
+    Stream<Arguments> provideParametersForRemoveTautology() {
         return Stream.of(
                 Arguments.of(
                         new HashSet<>(Set.of(
@@ -43,7 +43,7 @@ class ReductionTest {
         );
     }
 
-    Stream<Arguments> provideClausesForSubsumptionReduction() {
+    Stream<Arguments> provideParametersForSubsumptionReduction() {
         return Stream.of(
                 Arguments.of(
                         new HashSet<>(Set.of(

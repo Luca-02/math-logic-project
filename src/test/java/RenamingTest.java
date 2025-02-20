@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RenamingTest {
     @ParameterizedTest(name = "{index} -> original={0}, toRename={1}, substitutions={2}")
-    @MethodSource("provideClauseForGetSubstitutionForDisjointVariables")
+    @MethodSource("provideParametersForGetSubstitutionForDisjointVariables")
     void testGetSubstitutionForDisjointVariables(Clause original, Clause toRename, Map<String, Term> expected) {
         Map<String, Term> result = Renaming.getSubstitutionForDisjointVariables(original, toRename);
 
@@ -21,14 +21,14 @@ class RenamingTest {
     }
 
     @ParameterizedTest(name = "{index} -> original={0}, toRename={1}, substitutions={2}")
-    @MethodSource("provideClauseForRenameClausesToDisjointVariable")
+    @MethodSource("provideParametersForRenameClausesToDisjointVariable")
     void testRenameClausesToDisjointVariable(Clause original, Clause toRename, Clause expected) {
         Renaming.renameClausesToDisjointVariable(original, toRename);
 
         assertEquals(expected, toRename);
     }
 
-    Stream<Arguments> provideClauseForGetSubstitutionForDisjointVariables() {
+    Stream<Arguments> provideParametersForGetSubstitutionForDisjointVariables() {
         return Stream.of(
                 Arguments.of(
                         Clause.parse("R(?x, s(?x)) => Q(f(?x))"),
@@ -53,7 +53,7 @@ class RenamingTest {
         );
     }
 
-    Stream<Arguments> provideClauseForRenameClausesToDisjointVariable() {
+    Stream<Arguments> provideParametersForRenameClausesToDisjointVariable() {
         return Stream.of(
                 Arguments.of(
                         Clause.parse("R(?x, s(?x)) => Q(f(?x))"),

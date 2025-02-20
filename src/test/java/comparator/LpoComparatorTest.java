@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LpoComparatorTest {
     @ParameterizedTest(name = "{index} -> s={0}, s={1}, expected={2}")
-    @MethodSource("provideTermsForLpoComparison")
+    @MethodSource("provideParametersForLpoComparison")
     void testLpoComparison(Term s, Term t, int expected) {
         LpoComparator comparator = new LpoComparator();
         int result = comparator.compare(s, t);
@@ -22,8 +22,9 @@ class LpoComparatorTest {
         assertEquals(expected * -1, inverse);
     }
 
-    Stream<Arguments> provideTermsForLpoComparison() {
+    Stream<Arguments> provideParametersForLpoComparison() {
         return Stream.of(
+                Arguments.of(Term.MINIMAL, Term.parse("?x"), -1),
                 Arguments.of(Term.parse("?x"), Term.parse("?x"), 0),
                 Arguments.of(Term.parse("f(g(a), h(a))"), Term.parse("f(g(a), h(a))"), 0),
                 Arguments.of(Term.parse("?a"), Term.parse("?b"), 0),

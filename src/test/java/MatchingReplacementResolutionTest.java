@@ -11,14 +11,14 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MatchingReplacementResolutionTest {
     @ParameterizedTest(name = "{index} -> clause1={0}, clause2={1}, expected={2}")
-    @MethodSource("provideClausesForMatchingReplacementResolution")
+    @MethodSource("provideParametersForMatchingReplacementResolution")
     void testMatchingReplacementResolution(Clause clause1, Clause clause2, Clause expected) {
         Clause result = MatchingReplacementResolution.apply(clause1, clause2);
 
         assertEquals(expected, result);
     }
 
-    Stream<Arguments> provideClausesForMatchingReplacementResolution() {
+    Stream<Arguments> provideParametersForMatchingReplacementResolution() {
         return Stream.of(
                 Arguments.of(
                         Clause.parse("=> P(?x)"),

@@ -4,7 +4,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import structure.Clause;
 import structure.Literal;
+import structure.Term;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -12,23 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CalculusRTest {
-    private static class SupportCalculusR extends CalculusR {
-        public SupportCalculusR(Set<Clause> clauses) {
-            super(clauses);
-        }
-        @Override
-        public Clause resolveClauses(Clause clauseWithPos, Clause clauseWithNeg, Literal posToDelete, Literal negToDelete) {
-            return null;
-        }
-
-        @Override
-        public Set<Clause> factorizeClause(Clause clause) {
-            return Set.of();
-        }
-    }
-
     @ParameterizedTest(name = "{index} -> clauses={0}, givenClause={1}")
-    @MethodSource("provideClausesForSelectGivenClause")
+    @MethodSource("provideParametersForSelectGivenClause")
     void testSelectGivenClause(Set<Clause> clauses, Clause givenClause) {
         CalculusR resolver = new SupportCalculusR(clauses);
         Clause result = resolver.selectGivenClause();
@@ -37,7 +24,7 @@ class CalculusRTest {
     }
 
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
-    @MethodSource("provideClausesForRefutationReached")
+    @MethodSource("provideParametersForRefutationReached")
     void testRefutationReached(Set<Clause> clauses, boolean expected) {
         CalculusR resolver = new SupportCalculusR(clauses);
         boolean result = resolver.refutationReached();
@@ -45,7 +32,7 @@ class CalculusRTest {
         assertEquals(expected, result);
     }
 
-    Stream<Arguments> provideClausesForSelectGivenClause() {
+    Stream<Arguments> provideParametersForSelectGivenClause() {
         return Stream.of(
                 Arguments.of(
                         Set.of(
@@ -74,7 +61,7 @@ class CalculusRTest {
         );
     }
 
-    Stream<Arguments> provideClausesForRefutationReached() {
+    Stream<Arguments> provideParametersForRefutationReached() {
         return Stream.of(
                 Arguments.of(
                         Set.of(
@@ -93,5 +80,22 @@ class CalculusRTest {
                         true
                 )
         );
+    }
+
+    private static class SupportCalculusR extends CalculusR {
+        public SupportCalculusR(Set<Clause> clauses) {
+            super(clauses);
+        }
+
+        @Override
+        protected boolean factorizationCanBeApplied(Clause clause, Literal lit, Map<String, Term> mgu) {
+            return false;
+        }
+
+        @Override
+        protected boolean resolutionCanBeApplied(
+                Clause clauseWithPos, Clause clauseWithNeg, Literal posToDelete, Literal negToDelete, Map<String, Term> mgu) {
+            return false;
+        }
     }
 }

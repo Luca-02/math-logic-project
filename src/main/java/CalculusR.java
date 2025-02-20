@@ -89,32 +89,51 @@ public abstract class CalculusR {
      */
     private Set<Clause> inferClauses(Clause given, Set<Clause> worked) {
         // Apply factorization on given clause
-        Set<Clause> newClauses = new HashSet<>(factorizeClause(given));
+        Set<Clause> newClauses = new HashSet<>(factorizeAllPossibleClause(given));
 
         Clause cloneGiven = given.clone();
         Renaming.renameClausesToDisjointVariable(given, cloneGiven);
 
         // Resolution on literals: from given (positive) to given (negative)
-        newClauses.addAll(resolveClauses(given, cloneGiven));
+        newClauses.addAll(resolveAllPossibleClauses(given, cloneGiven));
 
         for (Clause c : worked) {
             // Apply renomination to make sure that the tow clause have disjoint variables
             Renaming.renameClausesToDisjointVariable(c, given);
 
             // Resolution on literals: from given (positive) to Wo clause (negative)
-            newClauses.addAll(resolveClauses(given, c));
+            newClauses.addAll(resolveAllPossibleClauses(given, c));
 
             // Resolution on literals: from c (positive) to given Wo clause (negative)
-            newClauses.addAll(resolveClauses(c, given));
+            newClauses.addAll(resolveAllPossibleClauses(c, given));
         }
 
         return newClauses;
     }
 
     /**
-     * Resolution of two clauses, possibly renamed to have disjoint variables
+     * All possible right factorization of a clause.
      */
-    private Set<Clause> resolveClauses(Clause clauseWithPos, Clause clauseWithNeg) {
+    public Set<Clause> factorizeAllPossibleClause(Clause clause) {
+        Set<Clause> factorizations = new HashSet<>();
+        List<Literal> posList = new ArrayList<>(clause.getPositiveLiterals());
+        // Avoid to check the same pair of literals two times
+        for (int i = 0; i < posList.size(); i++) {
+            for (int j = i + 1; j < posList.size(); j++) {
+                Clause factorized = factorizeClause(clause, posList.get(i), posList.get(j));
+
+                if (factorized != null) {
+                    factorizations.add(factorized);
+                }
+            }
+        }
+        return factorizations;
+    }
+
+    /**
+     * All possible resolution of two clauses, possibly renamed to have disjoint variables.
+     */
+    private Set<Clause> resolveAllPossibleClauses(Clause clauseWithPos, Clause clauseWithNeg) {
         Set<Clause> resolutions = new HashSet<>();
         for (Literal pos : clauseWithPos.getPositiveLiterals()) {
             for (Literal neg : clauseWithNeg.getNegativeLiterals()) {
@@ -129,12 +148,50 @@ public abstract class CalculusR {
     }
 
     /**
+     * Right factorization of a clause with the given literals for which we have done the unification.
+     */
+    public Clause factorizeClause(Clause clause, Literal lit1, Literal lit2) {
+        Map<String, Term> mgu = Unification.unify(lit1, lit2);
+
+        if (factorizationCanBeApplied(clause, lit1, mgu)) {
+            // By applying the substitution on the clause, it will automatically merge
+            // the literals A and B on which the unification has been done through the mgu
+            return Substitution.applySubstitution(clause, mgu);
+        }
+        return null;
+    }
+
+    /**
      * Resolution of two clauses with the given literals for which we have done the unification
      */
-    public abstract Clause resolveClauses(
-            Clause clauseWithPos, Clause clauseWithNeg, Literal posToDelete, Literal negToDelete);
-    /**
-     * Right factorization on a given clause
-     */
-    public abstract Set<Clause> factorizeClause(Clause clause);
+    public Clause resolveClauses(Clause clauseWithPos, Clause clauseWithNeg, Literal posToDelete, Literal negToDelete) {
+        Map<String, Term> mgu = Unification.unify(posToDelete, negToDelete);
+
+        if (resolutionCanBeApplied(clauseWithPos, clauseWithNeg, posToDelete, negToDelete, mgu)) {
+            Clause clauseWithPosClone = clauseWithPos.clone();
+            Clause clauseWithNegClone = clauseWithNeg.clone();
+            clauseWithPosClone.getPositiveLiterals().remove(posToDelete);
+            clauseWithNegClone.getNegativeLiterals().remove(negToDelete);
+
+            Set<Literal> mergedLiterals = new HashSet<>();
+            mergedLiterals.addAll(clauseWithPosClone.getNegativeLiterals());
+            mergedLiterals.addAll(clauseWithNegClone.getNegativeLiterals());
+            mergedLiterals.addAll(clauseWithPosClone.getPositiveLiterals());
+            mergedLiterals.addAll(clauseWithNegClone.getPositiveLiterals());
+
+            Clause resolvent = new Clause(mergedLiterals);
+            return Substitution.applySubstitution(resolvent, mgu);
+        }
+
+        return null;
+    }
+
+    protected abstract boolean factorizationCanBeApplied(Clause clause, Literal lit, Map<String, Term> mgu);
+    protected abstract boolean resolutionCanBeApplied(
+            Clause clauseWithPos,
+            Clause clauseWithNeg,
+            Literal posToDelete,
+            Literal negToDelete,
+            Map<String, Term> mgu
+    );
 }

@@ -2,7 +2,11 @@ package comparator;
 
 import structure.Term;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class MultisetComparator implements Comparator<Map<Term , Integer>> {
     private static final Comparator<Term> comparator = new LpoComparator();
@@ -17,153 +21,99 @@ public class MultisetComparator implements Comparator<Map<Term , Integer>> {
     @Override
     public int compare(Map<Term , Integer> m, Map<Term , Integer> n) {
         if (m.equals(n)) return 0;
-        if (canTransform(m, n)) return 1;
-        if (canTransform(n, m)) return -1;
+
+        if (canTransformReduction(m, n)) return 1;
+        if (canTransformReduction(n, m)) return -1;
         return 0;
     }
 
     /**
-     * Returns {@code true} if multiset {@code M} can be transformed into multiset {@code N}.
+     * A reduction is applied to the problem from multisets of terms to multisets of integers.
      */
-    private static boolean canTransform(Map<Term, Integer> m, Map<Term, Integer> n) {
-        // Base case: if the multisets are equal
-        if (m.equals(n)) return true;
-        // Base case: if M is empty
-        if (m.isEmpty()) return false;
-        // Base case: if N is empty
-        if (n.isEmpty()) return true;
+    public boolean canTransformReduction(Map<Term, Integer> m, Map<Term, Integer> n) {
+        Map<Term, Integer> integerMapping = createIntegerMapping(m, n);
+        Map<Integer, Integer> reducedM = reduceToIntegerMultiset(m, integerMapping);
+        Map<Integer, Integer> reducedN = reduceToIntegerMultiset(n, integerMapping);
+        return canTransform(reducedM, reducedN);
+    }
 
-        // Find the maximum in M and in N
-        Term maxM = m.keySet().stream().max(comparator).orElse(Term.MINIMAL);
-        Term maxN = n.keySet().stream().max(comparator).orElse(Term.MINIMAL);
+    /**
+     * Check whether, starting from the multiset {@code M}, the multiset {@code N} can be obtained through
+     * transformations that replace an element {@code x} in {@code M} with a multiset of elements
+     * all strictly minor than {@code x}.
+     */
+    public boolean canTransform(Map<Integer, Integer> m, Map<Integer, Integer> n) {
+        // Let's determine the maximum value present in the two mappings
+        int maxVal = 0;
+        for (int key : m.keySet()) {
+            if (key > maxVal) maxVal = key;
+        }
+        for (int key : n.keySet()) {
+            if (key > maxVal) maxVal = key;
+        }
 
-        // If an element greater than maxM appears in N, the
-        // transformation from M to N is impossible
-        if(comparator.compare(maxN, maxM) > 0) return false;
+        // Flag indicating whether there is at least one "excess" (i.e., transformable) element
+        // that can produce a multiset of elements of lesser value
+        boolean availableForSplit = false;
 
-        // If the maximum is the same, we check the occurrences of it in M and N
-        if (comparator.compare(maxN, maxM) == 0) {
-            int countMaxM = m.getOrDefault(maxM, 0);
-            int countMaxN = n.getOrDefault(maxN, 0);
+        // We scroll the values from maximum to 1, because the transformation is
+        // applicable only to elements greater than 0
+        for (int v = maxVal; v >= 1; v--) {
+            int countM = m.getOrDefault(v, 0);
+            int countN = n.getOrDefault(v, 0);
 
-            if (countMaxM == countMaxN) {
-                // We remove the maximum term from both multisets and continue
-                Map<Term, Integer> newM = cloneMultiset(m);
-                Map<Term, Integer> newN = cloneMultiset(n);
-                newM.remove(maxM);
-                newN.remove(maxN);
-                return canTransform(newM, newN);
-            } else if (countMaxM > countMaxN) {
-                // Occurrences in excess must be transformed
-                return tryTransform(m, n, maxM);
-            } else { // countM < countN
-                // If the maximum term appears fewer times in M than required in N, we cannot add
-                // occurrences via transformation, so it fails.
+            // If we need more occurrences of v in N than we have in M, and we don't
+            // yet have any transformations from a larger value, then we can't get N
+            if (countN > countM && !availableForSplit) {
                 return false;
             }
-        }
 
-        // If the maximum in M is greater than the one in N, all occurrences of maxM must be transformed
-        return tryTransform(m, n, maxM);
-    }
-
-    /**
-     * Helper function that attempts to transform an occurrence of {@code x} in {@code M} into some
-     * multiset {@code L = {y1, ..., yn}}, such that every element of {@code L} is strictly less than {@code x}.
-     */
-    private static boolean tryTransform(Map<Term, Integer> m, Map<Term, Integer> n, Term x) {
-        // Let's look at the possible replacement candidates.
-        // For example, let's try all the terms that appear in N and that are strictly less than x.
-        List<Term> candidates = new ArrayList<>(n.keySet());
-        candidates.removeIf(candidate -> !(comparator.compare(candidate, x) < 0));
-
-        // If there is no candidates it cannot be transformed
-        if (candidates.isEmpty()) return false;
-
-        // We define an upper bound for the length of the combinations
-        int upperBound = sumOccurrences(n) + 1;
-
-        // For each possible dimension from 1 to upperBound, we generate all combinations of multisets
-        for (int size = 1; size <= upperBound; size++) {
-            List<Map<Term, Integer>> allCombinations = new ArrayList<>();
-            populateAllCombinations(allCombinations, new HashMap<>(), candidates, size, 0);
-
-            for (Map<Term, Integer> combination : allCombinations) {
-                // Creates a copy of M, removes one occurrence of x and adds the resulting multiset L
-                Map<Term, Integer> newM = cloneMultiset(m);
-                decrement(newM, x);
-
-                for (Map.Entry<Term, Integer> entry : combination.entrySet()) {
-                    add(newM, entry.getKey(), entry.getValue());
-                }
-
-                // If the transformation leads to N, the function returns true
-                if (canTransform(newM, n)) return true;
+            // We enable the possibility of transformation for the smaller values.
+            // If there are more occurrences of v in M than are needed in N and v > 1,
+            // then that excess allows us to transform an element v into a multiset
+            // composed of strictly minor elements
+            if (countM > countN && v > 1) {
+                availableForSplit = true;
             }
         }
-        return false;
+
+        // If the cycle ends without finding any deficits,
+        // transformation is possible.
+        return true;
     }
 
     /**
-     * Create a clone of a multiset.
+     * Reduces a multiset of terms to a multiset of integers with a given term to integer mapping.
+     * The terms are sorted using {@link LpoComparator}, and each term is mapped to an integer key.
      */
-    private static Map<Term, Integer> cloneMultiset(Map<Term, Integer> multiset) {
-        return new HashMap<>(multiset);
-    }
-
-    /**
-     * Returns the total sum of occurrences in a multiset.
-     */
-    private static int sumOccurrences(Map<Term, Integer> multiset) {
-        int sum = 0;
-        for (int count : multiset.values()) {
-            sum += count;
+    private Map<Integer, Integer> reduceToIntegerMultiset(
+            Map<Term , Integer> multiset, Map<Term , Integer> integerMapping) {
+        Map<Integer, Integer> reduction = new HashMap<>();
+        for (Map.Entry<Term, Integer> entry : multiset.entrySet()) {
+            reduction.put(integerMapping.get(entry.getKey()), entry.getValue());
         }
-        return sum;
+        return reduction;
     }
 
     /**
-     * Recursive function to generate all combinations (multisets) of {@code size}
-     * elements from candidate {@code terms} (combinations with repetition, without considering the order).
+     * Create a term to integer mapping from two given multisets of terms.
      */
-    private static void populateAllCombinations(
-            List<Map<Term, Integer>> result,
-            Map<Term, Integer> current,
-            List<Term> candidates,
-            int size,
-            int startIndex
-    ) {
-        if (size == 0) {
-            result.add(new HashMap<>(current));
-            return;
-        }
-        for (int i = startIndex; i < candidates.size(); i++) {
-            Term candidate = candidates.get(i);
-            current.put(candidate, current.getOrDefault(candidate, 0) + 1);
-            populateAllCombinations(result, current, candidates, size - 1, i);
-            int count = current.get(candidate);
-            if (count == 1) {
-                current.remove(candidate);
-            } else {
-                current.put(candidate, count - 1);
+    private Map<Term, Integer> createIntegerMapping(Map<Term, Integer> m, Map<Term, Integer> n) {
+        Set<Term> elements = new TreeSet<>(comparator);
+        elements.addAll(m.keySet());
+        elements.addAll(n.keySet());
+
+        Map<Term, Integer> integerMapping = new HashMap<>();
+        Term last = Term.MINIMAL;
+        int count = 0;
+        for (Term term : elements) {
+            integerMapping.put(term, count);
+            if (term.equals(Term.MINIMAL) || comparator.compare(last, term) < 0) {
+                count++;
             }
+            last = term;
         }
-    }
 
-    /**
-     * Decrements the count for term {@code t}, and if the count becomes 0, removes {@code t} from the map.
-     */
-    private static void decrement(Map<Term, Integer> multiset, Term t) {
-        int count = multiset.getOrDefault(t, 0);
-        if (count <= 1) multiset.remove(t);
-        else multiset.put(t, count - 1);
-    }
-
-    /**
-     * Adds {@code n} occurrences of term {@code t} into the multiset.
-     */
-    private static void add(Map<Term, Integer> multiset, Term t, int n) {
-        int count = multiset.getOrDefault(t, 0);
-        multiset.put(t, count + n);
+        return integerMapping;
     }
 }
