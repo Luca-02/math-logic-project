@@ -1,3 +1,5 @@
+package comparator;
+
 import structure.Term;
 
 import java.util.Comparator;
@@ -16,9 +18,9 @@ public class LpoComparator implements Comparator<Term> {
      */
     @Override
     public int compare(Term s, Term t) {
+        if (s.equals(t)) return 0;
         if (s == Term.MINIMAL) return -1;
         if (t == Term.MINIMAL) return 1;
-        if (s.equals(t)) return 0;
 
         // Variables are considered equals
         if (s.isVariable() && t.isVariable()) {
@@ -76,6 +78,7 @@ public class LpoComparator implements Comparator<Term> {
             else return 1;
         }
 
+        // If s ≤lpo ti for some i ∈ {1, ..., n}
         for (Term tArg : tArgs) {
             if (s.equals(tArg) || compare(s, tArg) < 0) return -1;
         }

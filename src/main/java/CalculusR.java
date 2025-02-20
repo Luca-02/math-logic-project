@@ -2,24 +2,33 @@ import structure.Clause;
 import structure.Literal;
 import structure.Term;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public class CalculusR {
+public abstract class CalculusR {
     private final Set<Clause> usable; // Us
     private final Set<Clause> worked; // Wo
 
+    public CalculusR() {
+        this(Collections.emptySet());
+    }
+
     public CalculusR(Set<Clause> clauses) {
-        this.usable = new HashSet<>(clauses);
+        this.usable = new HashSet<>();
         this.worked = new HashSet<>();
+        initClauses(clauses);
+    }
+
+    public void initClauses(Set<Clause> clauses) {
+        usable.addAll(clauses);
         Reduction.removeTautology(usable);
         Reduction.subsumptionReduction(usable);
         Reduction.matchingReplacementResolution(usable, usable);
     }
 
+    /**
+     * Refute the clauses. Return {@code true} if a refutation is reached,
+     * otherwise {@code false}.
+     */
     public boolean refute() {
         do {
             // Returns true if we found a refutation.
@@ -122,47 +131,10 @@ public class CalculusR {
     /**
      * Resolution of two clauses with the given literals for which we have done the unification
      */
-    public Clause resolveClauses(Clause clauseWithPos, Clause clauseWithNeg, Literal posToDelete, Literal negToDelete) {
-        Map<String, Term> mgu = Unification.unify(posToDelete, negToDelete);
-
-        if (mgu != null) {
-            Clause clauseWithPosClone = clauseWithPos.clone();
-            Clause clauseWithNegClone = clauseWithNeg.clone();
-            clauseWithPosClone.getPositiveLiterals().remove(posToDelete);
-            clauseWithNegClone.getNegativeLiterals().remove(negToDelete);
-
-            Set<Literal> mergedLiterals = new HashSet<>();
-            mergedLiterals.addAll(clauseWithPosClone.getNegativeLiterals());
-            mergedLiterals.addAll(clauseWithNegClone.getNegativeLiterals());
-            mergedLiterals.addAll(clauseWithPosClone.getPositiveLiterals());
-            mergedLiterals.addAll(clauseWithNegClone.getPositiveLiterals());
-
-            Clause resolvent = new Clause(mergedLiterals);
-            return Substitution.applySubstitution(resolvent, mgu);
-        }
-
-        return null;
-    }
-
+    public abstract Clause resolveClauses(
+            Clause clauseWithPos, Clause clauseWithNeg, Literal posToDelete, Literal negToDelete);
     /**
      * Right factorization on a given clause
      */
-    public Set<Clause> factorizeClause(Clause clause) {
-        Set<Clause> factorizations = new HashSet<>();
-
-        List<Literal> posList = new ArrayList<>(clause.getPositiveLiterals());
-        for (int i = 0; i < posList.size(); i++) {
-            for (int j = i + 1; j < posList.size(); j++) {
-                Map<String, Term> mgu = Unification.unify(posList.get(i), posList.get(j));
-                if (mgu != null) {
-                    // By applying the substitution on the clause, it will automatically merge
-                    // the literals A and B on which the unification has been done through the mgu
-                    Clause factClause = Substitution.applySubstitution(clause, mgu);
-                    factorizations.add(factClause);
-                }
-            }
-        }
-
-        return factorizations;
-    }
+    public abstract Set<Clause> factorizeClause(Clause clause);
 }

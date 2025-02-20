@@ -48,7 +48,7 @@ public class Equation {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getFirst(), getSecond());
+        return Objects.hash(first, second);
     }
 
     @Override
