@@ -2,6 +2,7 @@ package org.mathlogic.structure;
 
 import org.mathlogic.exception.EmptyLogicalStructureException;
 
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -21,12 +22,12 @@ public class Term implements LogicalStructure<Term> {
     private final String name;
     private final List<Term> arguments;
 
-    public Term(String name, List<Term> arguments) {
+    public Term(@NotNull String name, @NotNull List<Term> arguments) {
         this.name = name;
         this.arguments = arguments;
     }
 
-    public Term(String name, Term... arguments) {
+    public Term(@NotNull String name, @NotNull Term... arguments) {
         this(name, List.of(arguments));
     }
 
@@ -50,14 +51,17 @@ public class Term implements LogicalStructure<Term> {
         return !arguments.isEmpty() || !name.contains(VARIABLE_IDENTIFIER);
     }
 
-    public boolean occurIn(Term term) {
-        if (term.isVariable()) {
-            return equals(term);
+    /**
+     * Check if a {@code external} term is contained in this term.
+     */
+    public boolean occurIn(Term external) {
+        if (external.isVariable()) {
+            return equals(external);
         } else {
-            if (equals(term)) {
+            if (equals(external)) {
                 return true;
             }
-            for (Term arg : term.getArguments()) {
+            for (Term arg : external.getArguments()) {
                 if (occurIn(arg)) {
                     return true;
                 }
@@ -66,6 +70,7 @@ public class Term implements LogicalStructure<Term> {
         }
     }
 
+    @Override
     public List<String> collectSymbols() {
         List<String> symbols = new ArrayList<>();
         symbols.add(name);
@@ -73,6 +78,15 @@ public class Term implements LogicalStructure<Term> {
             symbols.addAll(arg.collectSymbols());
         }
         return symbols;
+    }
+
+    @Override
+    public Term copy() {
+        List<Term> clonedArguments = new ArrayList<>();
+        for (Term arg : arguments) {
+            clonedArguments.add(arg.copy());
+        }
+        return new Term(name, clonedArguments);
     }
 
     @Override
@@ -88,23 +102,14 @@ public class Term implements LogicalStructure<Term> {
     }
 
     @Override
-    public Term copy() {
-        List<Term> clonedArguments = new ArrayList<>();
-        for (Term arg : arguments) {
-            clonedArguments.add(arg.copy());
-        }
-        return new Term(name, clonedArguments);
-    }
-
-    @Override
     public String toString() {
         if (isVariable()) return name;
         if (arguments == null || arguments.isEmpty()) return name;
         return name + "(" + String.join(", ", arguments.stream().map(Term::toString).toList()) + ")";
     }
 
-    public static Term parse(String input) {
-        if (input == null || input.isEmpty()) {
+    public static Term parse(@NotNull String input) {
+        if (input.isEmpty()) {
             throw new EmptyLogicalStructureException();
         }
 

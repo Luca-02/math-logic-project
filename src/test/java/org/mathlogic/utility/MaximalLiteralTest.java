@@ -16,7 +16,12 @@ class MaximalLiteralTest {
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
     @MethodSource("provideParametersForIsMaximal")
     void testIsMaximal(Literal lit, Clause clause, boolean strictlyMaximal, boolean expected) {
-        boolean result = MaximalLiteral.isMaximal(lit, clause, strictlyMaximal);
+        boolean result;
+        if (strictlyMaximal) {
+            result = MaximalLiteral.isStrictlyMaximal(lit, clause);
+        } else {
+            result = MaximalLiteral.isMaximal(lit, clause);
+        }
 
         assertEquals(expected, result);
     }

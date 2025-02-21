@@ -1,6 +1,8 @@
 package org.mathlogic.structure;
 
+import org.jetbrains.annotations.NotNull;
 import org.mathlogic.exception.EmptyLogicalStructureException;
+import org.mathlogic.utility.MaximalLiteral;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,10 +22,22 @@ import static org.mathlogic.Constant.CLAUSE_LITERALS_DIVISOR;
 public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
     private final Set<Literal> negativeLiterals;
     private final Set<Literal> positiveLiterals;
+    private final Set<Literal> maximalNegativeLiterals;
+    private final Set<Literal> maximalPositiveLiterals;
 
-    public Clause(Set<Literal> literals) {
+    public Clause(@NotNull Set<Literal> literals) {
         this.negativeLiterals = new HashSet<>();
         this.positiveLiterals = new HashSet<>();
+        this.maximalNegativeLiterals = new HashSet<>();
+        this.maximalPositiveLiterals = new HashSet<>();
+        setLiteralsSets(literals);
+    }
+
+    public Clause(@NotNull Literal... literals) {
+        this(Arrays.stream(literals).collect(Collectors.toSet()));
+    }
+
+    private void setLiteralsSets(Set<Literal> literals) {
         for (Literal lit : literals) {
             if (lit.isNegated()) {
                 negativeLiterals.add(lit);
@@ -31,10 +45,22 @@ public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
                 positiveLiterals.add(lit);
             }
         }
+
+        for (Literal lit : literals) {
+            if (lit.isNegated() && MaximalLiteral.isMaximal(lit, this)) {
+                maximalNegativeLiterals.add(lit);
+            } else if (MaximalLiteral.isMaximal(lit, this)) {
+                maximalPositiveLiterals.add(lit);
+            }
+        }
     }
 
-    public Clause(Literal... literals) {
-        this(Arrays.stream(literals).collect(Collectors.toSet()));
+    public void replace(Clause replacement) {
+        negativeLiterals.clear();
+        positiveLiterals.clear();
+        maximalNegativeLiterals.clear();
+        maximalPositiveLiterals.clear();
+        setLiteralsSets(replacement.getAllLiterals());
     }
 
     public Set<Literal> getNegativeLiterals() {
@@ -52,6 +78,14 @@ public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
         return allLiterals;
     }
 
+    public Set<Literal> getMaximalNegativeLiterals() {
+        return maximalNegativeLiterals;
+    }
+
+    public Set<Literal> getMaximalPositiveLiterals() {
+        return maximalPositiveLiterals;
+    }
+
     public boolean isTautology() {
         for (Literal lit : positiveLiterals) {
             if (negativeLiterals.contains(lit.negate())) {
@@ -65,6 +99,7 @@ public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
         return negativeLiterals.isEmpty() && positiveLiterals.isEmpty();
     }
 
+    @Override
     public List<String> collectSymbols() {
         List<String> symbols = new ArrayList<>();
         for (Literal lit : negativeLiterals) {
@@ -74,25 +109,6 @@ public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
             symbols.addAll(lit.collectSymbols());
         }
         return symbols;
-    }
-
-    public void replace(Clause clause) {
-        negativeLiterals.clear();
-        negativeLiterals.addAll(clause.getNegativeLiterals());
-        positiveLiterals.clear();
-        positiveLiterals.addAll(clause.getPositiveLiterals());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Clause other)) return false;
-        return Objects.equals(negativeLiterals, other.negativeLiterals) &&
-                Objects.equals(positiveLiterals, other.positiveLiterals);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(negativeLiterals, positiveLiterals);
     }
 
     @Override
@@ -108,8 +124,22 @@ public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Clause other)) return false;
+        return Objects.equals(negativeLiterals, other.negativeLiterals) &&
+                Objects.equals(positiveLiterals, other.positiveLiterals);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(negativeLiterals, positiveLiterals);
+    }
+
+    /**
+     * Compare clauses by number of symbols.
+     */
+    @Override
     public int compareTo(Clause o) {
-        // Compare by number of symbols
         return Integer.compare(collectSymbols().size(), o.collectSymbols().size());
     }
 
@@ -138,8 +168,8 @@ public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
         return builder.toString().trim();
     }
 
-    public static Clause parse(String input) {
-        if (input == null || input.isEmpty()) {
+    public static Clause parse(@NotNull String input) {
+        if (input.isEmpty()) {
             throw new EmptyLogicalStructureException();
         }
 

@@ -1,5 +1,6 @@
 package org.mathlogic.utility;
 
+import org.jetbrains.annotations.NotNull;
 import org.mathlogic.structure.Clause;
 
 import java.util.HashSet;
@@ -9,16 +10,15 @@ public class Reduction {
     /**
      * <b>Taut:</b> remove tautological clauses.
      */
-    public static void removeTautology(Set<Clause> clauses) {
+    public static void removeTautology(@NotNull Set<Clause> clauses) {
         clauses.removeIf(Clause::isTautology);
     }
 
     /**
      * <b>Sub:</b> remove subsumed clauses.
      */
-    public static void subsumptionReduction(Set<Clause> clauses) {
+    public static void subsumptionReduction(@NotNull Set<Clause> clauses) {
         Set<Clause> toRemove = new HashSet<>();
-
         for (Clause ref : clauses) {
             if (toRemove.contains(ref)) continue;
 
@@ -30,14 +30,16 @@ public class Reduction {
                 }
             }
         }
-
         clauses.removeAll(toRemove);
     }
 
     /**
      * <b>MRR:</b> update target's clauses using Matching Replacement Resolution.
      */
-    public static void matchingReplacementResolution(Set<Clause> reference, Set<Clause> target) {
+    public static void matchingReplacementResolution(
+            @NotNull Set<Clause> reference,
+            @NotNull Set<Clause> target
+    ) {
         for (Clause ref : reference) {
             for (Clause t : target) {
                 Clause replacer = MatchingReplacementResolution.apply(ref, t);

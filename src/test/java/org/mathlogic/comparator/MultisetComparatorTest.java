@@ -24,8 +24,8 @@ class MultisetComparatorTest {
     @ParameterizedTest(name = "{index} -> lit1={0}, lit2={1}, expected={2}")
     @MethodSource("provideParametersForLiteralComparison")
     void testLiteralComparison(Literal lit1, Literal lit2, int expected) {
-        int result = comparator.compare(lit1.getMultiset(), lit2.getMultiset());
-        int inverse = comparator.compare(lit2.getMultiset(), lit1.getMultiset());
+        int result = comparator.compare(lit1.getMultisetView(), lit2.getMultisetView());
+        int inverse = comparator.compare(lit2.getMultisetView(), lit1.getMultisetView());
 
         assertEquals(expected, result);
         assertEquals(expected * -1, inverse);

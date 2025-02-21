@@ -1,6 +1,7 @@
 package org.mathlogic;
 
 import org.mathlogic.structure.Clause;
+import org.mathlogic.utility.Reduction;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -96,7 +97,30 @@ public abstract class AutomaticCalculus {
     /**
      * Initial reduction on the given input clauses to refute.
      */
-    protected abstract void initialReduction();
+    private void initialReduction() {
+        Reduction.removeTautology(usable);
+        Reduction.subsumptionReduction(usable);
+        Reduction.matchingReplacementResolution(usable, usable);
+    }
+
+    /**
+     * Forward reductions on the new found clauses.
+     */
+    private void forwardReduction(Set<Clause> newClauses) {
+        Reduction.removeTautology(newClauses);
+        Reduction.subsumptionReduction(newClauses);
+        Reduction.matchingReplacementResolution(newClauses, newClauses);
+        Reduction.matchingReplacementResolution(worked, newClauses);
+        Reduction.matchingReplacementResolution(usable, newClauses);
+    }
+
+    /**
+     * Backwards reductions on olds clauses in {@code Us} and {@code Wo} with the new ones
+     */
+    private void backwardsReduction(Set<Clause> newClauses) {
+        Reduction.matchingReplacementResolution(newClauses, worked);
+        Reduction.matchingReplacementResolution(newClauses, usable);
+    }
 
     /**
      * Apply all possible inference between given clause and itself.
@@ -107,14 +131,4 @@ public abstract class AutomaticCalculus {
      * Apply all possible inference between given clause and a clause of {@code Wo}.
      */
     protected abstract Set<Clause> inferAllPossibleClausesFromWorkedClause(Clause given, Clause clauseWo);
-
-    /**
-     * Forward reductions on the new found clauses.
-     */
-    protected abstract void forwardReduction(Set<Clause> newClauses);
-
-    /**
-     * Backwards reductions on olds clauses in {@code Us} and {@code Wo} with the new ones
-     */
-    protected abstract void backwardsReduction(Set<Clause> newClauses);
 }

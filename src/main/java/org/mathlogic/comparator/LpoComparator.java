@@ -7,6 +7,22 @@ import java.util.Comparator;
 import java.util.List;
 
 public class LpoComparator implements Comparator<Term> {
+    private final Comparator<String> symbolPrecedence;
+
+    /**
+     * Default symbol precedence is alphabetical order.
+     */
+    public LpoComparator() {
+        this(String::compareTo);
+    }
+
+    /**
+     * Possibility to declare custom symbol precedence.
+     */
+    public LpoComparator(Comparator<String> symbolPrecedence) {
+        this.symbolPrecedence = symbolPrecedence;
+    }
+
     /**
      * Given a precedence relation {@code <} on {@code Σ} we define {@code <lpo} as the smallest relation on trees that satisfies
      * {@code s = f(s1, ..., sn) <lpo t = g(t1, ..., tm)} iff at least one of the following holds:
@@ -38,7 +54,7 @@ public class LpoComparator implements Comparator<Term> {
         List<Term> tArgs = t.getArguments();
 
         // If f is alphabetically less than g and for each argument we have si <lpo t
-        if (f.compareTo(g) < 0) {
+        if (symbolPrecedence.compare(f, g) < 0) {
             boolean allLess = true;
             for (Term sArg : sArgs) {
                 if (compare(sArg, t) >= 0) {
@@ -51,7 +67,7 @@ public class LpoComparator implements Comparator<Term> {
         }
 
         // If f = g, we look for the first index k where s and t differ
-        if (f.equals(g)) {
+        if (symbolPrecedence.compare(f, g) == 0) {
             int minSize = Math.min(sArgs.size(), tArgs.size());
             int k = 0;
             for (int i = 0; i < minSize; i++) {

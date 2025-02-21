@@ -3,7 +3,6 @@ package org.mathlogic;
 import org.mathlogic.structure.Clause;
 import org.mathlogic.structure.Literal;
 import org.mathlogic.structure.Term;
-import org.mathlogic.utility.Reduction;
 import org.mathlogic.utility.Renaming;
 import org.mathlogic.utility.Substitution;
 import org.mathlogic.utility.Unification;
@@ -15,13 +14,6 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class CalculusR extends AutomaticCalculus {
-    @Override
-    protected void initialReduction() {
-        Reduction.removeTautology(usable);
-        Reduction.subsumptionReduction(usable);
-        Reduction.matchingReplacementResolution(usable, usable);
-    }
-
     @Override
     protected Set<Clause> inferAllPossibleClausesFromItself(Clause given) {
         // Apply factorization on given clause
@@ -53,27 +45,13 @@ public abstract class CalculusR extends AutomaticCalculus {
         return newClauses;
     }
 
-    @Override
-    protected void forwardReduction(Set<Clause> newClauses) {
-        Reduction.removeTautology(newClauses);
-        Reduction.subsumptionReduction(newClauses);
-        Reduction.matchingReplacementResolution(newClauses, newClauses);
-        Reduction.matchingReplacementResolution(worked, newClauses);
-        Reduction.matchingReplacementResolution(usable, newClauses);
-    }
-
-    @Override
-    protected void backwardsReduction(Set<Clause> newClauses) {
-        Reduction.matchingReplacementResolution(newClauses, worked);
-        Reduction.matchingReplacementResolution(newClauses, usable);
-    }
-
     /**
      * All possible right factorization of a clause.
      */
     private Set<Clause> factorizeAllPossibleClauses(Clause clause) {
         Set<Clause> factorizations = new HashSet<>();
-        List<Literal> posList = new ArrayList<>(clause.getPositiveLiterals());
+        List<Literal> posList = new ArrayList<>(getPossibleFactorizableLiterals(clause));
+
         // Avoid to check the same pair of literals two times
         for (int i = 0; i < posList.size(); i++) {
             for (int j = i + 1; j < posList.size(); j++) {
@@ -92,8 +70,8 @@ public abstract class CalculusR extends AutomaticCalculus {
      */
     private Set<Clause> resolveAllPossibleClauses(Clause clauseWithPos, Clause clauseWithNeg) {
         Set<Clause> resolutions = new HashSet<>();
-        for (Literal pos : clauseWithPos.getPositiveLiterals()) {
-            for (Literal neg : clauseWithNeg.getNegativeLiterals()) {
+        for (Literal pos : getPossibleSolvablePositiveLiterals(clauseWithPos)) {
+            for (Literal neg : getPossibleSolvableNegativeLiterals(clauseWithNeg)) {
                 Clause resolvent = resolveClauses(clauseWithPos, clauseWithNeg, pos, neg);
 
                 if (resolvent != null) {
@@ -142,6 +120,21 @@ public abstract class CalculusR extends AutomaticCalculus {
 
         return null;
     }
+
+    /**
+     * Provide the list of literals of a clause for which we can apply factorization rule.
+     */
+    protected abstract Set<Literal> getPossibleFactorizableLiterals(Clause clause);
+
+    /**
+     * Provide the list of positive literals of a clause for which we can apply resolution rule.
+     */
+    protected abstract Set<Literal> getPossibleSolvablePositiveLiterals(Clause clause);
+
+    /**
+     * Provide the list of negative literals of a clause for which we can apply resolution rule.
+     */
+    protected abstract Set<Literal> getPossibleSolvableNegativeLiterals(Clause clause);
 
     /**
      * Function that returns whether the factorization rule can be applied according to

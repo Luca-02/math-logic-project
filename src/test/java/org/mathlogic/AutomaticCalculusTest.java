@@ -89,11 +89,6 @@ class AutomaticCalculusTest {
 
     private static class SupportAutomaticCalculus extends AutomaticCalculus {
         @Override
-        protected void initialReduction() {
-
-        }
-
-        @Override
         protected Set<Clause> inferAllPossibleClausesFromItself(Clause given) {
             return Set.of();
         }
@@ -101,16 +96,6 @@ class AutomaticCalculusTest {
         @Override
         protected Set<Clause> inferAllPossibleClausesFromWorkedClause(Clause given, Clause clauseWo) {
             return Set.of();
-        }
-
-        @Override
-        protected void forwardReduction(Set<Clause> newClauses) {
-
-        }
-
-        @Override
-        protected void backwardsReduction(Set<Clause> newClauses) {
-
         }
     }
 }

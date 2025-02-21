@@ -161,6 +161,21 @@ public class CalculusRTest {
 
     private static class SupportCalculusR extends CalculusR {
         @Override
+        protected Set<Literal> getPossibleFactorizableLiterals(Clause clause) {
+            return Set.of();
+        }
+
+        @Override
+        protected Set<Literal> getPossibleSolvablePositiveLiterals(Clause clause) {
+            return Set.of();
+        }
+
+        @Override
+        protected Set<Literal> getPossibleSolvableNegativeLiterals(Clause clause) {
+            return Set.of();
+        }
+
+        @Override
         protected boolean factorizationCanBeApplied(Clause clause, Literal lit, Map<String, Term> mgu) {
             return true;
         }

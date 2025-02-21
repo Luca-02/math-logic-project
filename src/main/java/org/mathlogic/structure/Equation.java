@@ -1,5 +1,7 @@
 package org.mathlogic.structure;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 
 /**
@@ -9,7 +11,7 @@ public class Equation {
     private Term left;
     private Term right;
 
-    public Equation(Term left, Term right) {
+    public Equation(@NotNull Term left, @NotNull Term right) {
         this.left = left;
         this.right = right;
     }

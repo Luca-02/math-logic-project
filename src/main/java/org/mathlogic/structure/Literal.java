@@ -1,5 +1,6 @@
 package org.mathlogic.structure;
 
+import org.jetbrains.annotations.NotNull;
 import org.mathlogic.exception.EmptyLogicalStructureException;
 
 import java.util.ArrayList;
@@ -19,13 +20,13 @@ public class Literal implements LogicalStructure<Literal> {
     private final String predicate;
     private final List<Term> terms;
 
-    public Literal(boolean isNegated, String predicate, List<Term> terms) {
+    public Literal(boolean isNegated, @NotNull String predicate, @NotNull List<Term> terms) {
         this.isNegated = isNegated;
         this.predicate = predicate;
         this.terms = terms;
     }
 
-    public Literal(boolean isNegated, String predicate, Term... terms) {
+    public Literal(boolean isNegated, @NotNull String predicate, @NotNull Term... terms) {
         this(isNegated, predicate, List.of(terms));
     }
 
@@ -45,7 +46,10 @@ public class Literal implements LogicalStructure<Literal> {
         return predicate.equals("=") && terms.size() == 2;
     }
 
-    public Map<Term, Integer> getMultiset() {
+    /**
+     * Get the multiset view of the literals.
+     */
+    public Map<Term, Integer> getMultisetView() {
         Map<Term, Integer> multiset = new HashMap<>();
 
         if (isIdentity()) {
@@ -59,6 +63,13 @@ public class Literal implements LogicalStructure<Literal> {
         return multiset;
     }
 
+    public Literal negate() {
+        Literal clone = copy();
+        clone.isNegated = !isNegated;
+        return clone;
+    }
+
+    @Override
     public List<String> collectSymbols() {
         List<String> symbols = new ArrayList<>();
         symbols.add(predicate);
@@ -68,10 +79,13 @@ public class Literal implements LogicalStructure<Literal> {
         return symbols;
     }
 
-    public Literal negate() {
-        Literal clone = copy();
-        clone.isNegated = !isNegated;
-        return clone;
+    @Override
+    public Literal copy() {
+        List<Term> clonedTerms = new ArrayList<>();
+        for (Term term : terms) {
+            clonedTerms.add(term.copy());
+        }
+        return new Literal(isNegated, predicate, clonedTerms);
     }
 
     @Override
@@ -88,22 +102,13 @@ public class Literal implements LogicalStructure<Literal> {
     }
 
     @Override
-    public Literal copy() {
-        List<Term> clonedTerms = new ArrayList<>();
-        for (Term term : terms) {
-            clonedTerms.add(term.copy());
-        }
-        return new Literal(isNegated, predicate, clonedTerms);
-    }
-
-    @Override
     public String toString() {
         return (isNegated ? NOT_SYMBOL : "") + predicate + "(" +
                 String.join(", ", terms.stream().map(Term::toString).toList()) + ")";
     }
 
-    public static Literal parse(String input) {
-        if (input == null || input.isEmpty()) {
+    public static Literal parse(@NotNull String input) {
+        if (input.isEmpty()) {
             throw new EmptyLogicalStructureException();
         }
 

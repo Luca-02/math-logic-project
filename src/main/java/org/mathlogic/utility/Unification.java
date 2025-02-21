@@ -66,7 +66,7 @@ public class Unification {
     /**
      * <b>org.mathlogic.utility.Unification rule 5:</b> fail if {@code f(t1, ..., tn) ?= g(u1, ..., um)} with {@code f != g (or n != m)}.
      */
-    public static boolean isFailing(Term t1, Term t2) {
+    public static boolean isFailing(@NotNull Term t1, @NotNull Term t2) {
         return !t1.getName().equals(t2.getName()) ||
                 t1.getArguments().size() != t2.getArguments().size();
     }
@@ -74,7 +74,7 @@ public class Unification {
     /**
      * <b>org.mathlogic.utility.Unification rule 6:</b> fail if {@code x ?= t with x != t} but {@code x} occurring in {@code t}.
      */
-    public static boolean occurCheck(Term t1, Term t2) {
+    public static boolean occurCheck(@NotNull Term t1, @NotNull Term t2) {
         return !t1.equals(t2) && t1.occurIn(t2);
     }
 

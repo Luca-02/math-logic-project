@@ -11,6 +11,21 @@ import java.util.*;
 
 public class DefaultCalculusR extends CalculusR {
     @Override
+    protected Set<Literal> getPossibleFactorizableLiterals(Clause clause) {
+        return clause.getPositiveLiterals();
+    }
+
+    @Override
+    protected Set<Literal> getPossibleSolvablePositiveLiterals(Clause clause) {
+        return clause.getPositiveLiterals();
+    }
+
+    @Override
+    protected Set<Literal> getPossibleSolvableNegativeLiterals(Clause clause) {
+        return clause.getNegativeLiterals();
+    }
+
+    @Override
     protected boolean factorizationCanBeApplied(
             Clause clause,
             Literal lit,

@@ -7,8 +7,24 @@ import org.mathlogic.utility.MaximalLiteral;
 import org.mathlogic.utility.Substitution;
 
 import java.util.Map;
+import java.util.Set;
 
 public class SortedCalculus extends CalculusR {
+    @Override
+    protected Set<Literal> getPossibleFactorizableLiterals(Clause clause) {
+        return clause.getMaximalPositiveLiterals();
+    }
+
+    @Override
+    protected Set<Literal> getPossibleSolvablePositiveLiterals(Clause clause) {
+        return clause.getMaximalPositiveLiterals();
+    }
+
+    @Override
+    protected Set<Literal> getPossibleSolvableNegativeLiterals(Clause clause) {
+        return clause.getMaximalNegativeLiterals();
+    }
+
     @Override
     public boolean factorizationCanBeApplied(
             Clause clause,
@@ -17,7 +33,7 @@ public class SortedCalculus extends CalculusR {
     ) {
         Clause subClause = Substitution.applySubstitution(clause, mgu);
         Literal subLit = Substitution.applySubstitution(lit, mgu);
-        return MaximalLiteral.isMaximal(subLit, subClause, false);
+        return MaximalLiteral.isMaximal(subLit, subClause);
     }
 
     @Override
@@ -34,7 +50,7 @@ public class SortedCalculus extends CalculusR {
         Clause subClauseWithNeg = Substitution.applySubstitution(clauseWithNeg, mgu);
         Literal subNegToDelete = Substitution.applySubstitution(negToDelete, mgu);
 
-        return MaximalLiteral.isMaximal(subPosToDelete, subClauseWithPos, true) &&
-                MaximalLiteral.isMaximal(subNegToDelete, subClauseWithNeg, false);
+        return MaximalLiteral.isStrictlyMaximal(subPosToDelete, subClauseWithPos) &&
+                MaximalLiteral.isMaximal(subNegToDelete, subClauseWithNeg);
     }
 }

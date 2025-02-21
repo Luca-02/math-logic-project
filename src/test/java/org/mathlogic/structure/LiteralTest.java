@@ -20,9 +20,9 @@ class LiteralTest {
     }
 
     @ParameterizedTest(name = "{index} -> literal={0}, expected={1}")
-    @MethodSource("provideParametersForGetMultiset")
-    void testGetMultiset(Literal literal, Map<Term, Integer> expected) {
-        assertEquals(expected, literal.getMultiset());
+    @MethodSource("provideParametersForGetMultisetView")
+    void testGetMultisetView(Literal literal, Map<Term, Integer> expected) {
+        assertEquals(expected, literal.getMultisetView());
     }
 
     @Test
@@ -85,7 +85,7 @@ class LiteralTest {
         );
     }
 
-    Stream<Arguments> provideParametersForGetMultiset() {
+    Stream<Arguments> provideParametersForGetMultisetView() {
         return Stream.of(
                 Arguments.of(
                         Literal.parse("Q(f(g(?x), ?y))"),
