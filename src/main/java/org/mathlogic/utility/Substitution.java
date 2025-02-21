@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class Substitution {
     /**
@@ -25,7 +24,7 @@ public class Substitution {
         } else {
             List<Term> args = term.getArguments().stream()
                     .map(arg -> applySubstitution(arg, substitutions))
-                    .collect(Collectors.toList());
+                    .toList();
             return new Term(term.getName(), args);
         }
     }
@@ -39,7 +38,7 @@ public class Substitution {
     ) {
         List<Term> substitutedTerms = lit.getTerms().stream()
                 .map(term -> applySubstitution(term, substitutions))
-                .collect(Collectors.toList());
+                .toList();
         return new Literal(lit.isNegated(), lit.getPredicate(), substitutedTerms);
     }
 

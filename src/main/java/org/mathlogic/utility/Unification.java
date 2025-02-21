@@ -103,18 +103,17 @@ public class Unification {
 
             for (int i = 0; i < equationSize; i++) {
                 Equation equation = equations.get(i);
-                Term t1 = equation.getFirst();
-                Term t2 = equation.getSecond();
+                Term t1 = equation.getLeft();
+                Term t2 = equation.getRight();
 
                 // Rule 1: delete t ?= t
                 if (t1.equals(t2)) {
                     equationsToDelete.add(equation);
-                    continue;
                 }
 
                 // Rule 2: overwrite f(t1, ..., tn) ?= g(u1, ..., um)
                 // with n equation of t1 ?= u1, ..., tn ?= un
-                if (t1.isFunction() && (!isUnification || t2.isFunction())) {
+                else if (t1.isFunction() && (!isUnification || t2.isFunction())) {
                     if (isFailing(t1, t2)) {
                         return null;
                     }
@@ -123,19 +122,17 @@ public class Unification {
                         equations.add(new Equation(t1.getArguments().get(j), t2.getArguments().get(j)));
                     }
                     changed = true;
-                    continue;
                 }
 
                 // Rule 3: overwrite t ?= x with x ?= t, if t is not a variable and x is a variable
-                if (isUnification && t1.isFunction() && t2.isVariable()) {
+                else if (isUnification && t1.isFunction() && t2.isVariable()) {
                     equation.swap();
                     changed = true;
-                    continue;
                 }
 
                 // Rule 4: if x ?= t with x not occurring in t, replace
                 // x with t in every other equation of the current list
-                if (t1.isVariable()) {
+                else if (t1.isVariable()) {
                     if (occurCheck(t1, t2)) {
                         return null;
                     }
@@ -157,7 +154,7 @@ public class Unification {
 
         Map<String, Term> substitutions = new HashMap<>();
         for (Equation equation : equations) {
-            substitutions.put(equation.getFirst().getName(), equation.getSecond());
+            substitutions.put(equation.getLeft().getName(), equation.getRight());
         }
 
         return substitutions.isEmpty() ? null : substitutions;
@@ -190,10 +187,10 @@ public class Unification {
                 continue;
             }
 
-            Term newFirst = Substitution.applySubstitution(eq.getFirst(), substitution);
-            Term newSecond = Substitution.applySubstitution(eq.getSecond(), substitution);
+            Term newFirst = Substitution.applySubstitution(eq.getLeft(), substitution);
+            Term newSecond = Substitution.applySubstitution(eq.getRight(), substitution);
 
-            if (!newFirst.equals(eq.getFirst()) || !newSecond.equals(eq.getSecond())) {
+            if (!newFirst.equals(eq.getLeft()) || !newSecond.equals(eq.getRight())) {
                 modified = true;
             }
 

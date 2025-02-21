@@ -41,7 +41,7 @@ public class LpoComparator implements Comparator<Term> {
         if (f.compareTo(g) < 0) {
             boolean allLess = true;
             for (Term sArg : sArgs) {
-                if (!(compare(sArg, t) < 0)) {
+                if (compare(sArg, t) >= 0) {
                     allLess = false;
                     break;
                 }
@@ -66,7 +66,7 @@ public class LpoComparator implements Comparator<Term> {
                 // Let us check that for each j ∈ {k+1, ..., n} we have sj <lpo t
                 boolean allLess = true;
                 for (int j = k + 1; j < sArgs.size(); j++) {
-                    if (!(compare(sArgs.get(j), t) < 0)) {
+                    if (compare(sArgs.get(j), t) >= 0) {
                         allLess = false;
                         break;
                     }
@@ -79,8 +79,8 @@ public class LpoComparator implements Comparator<Term> {
             else return 1;
         }
 
-        // If s ≤lpo ti for some i ∈ {1, ..., n}
         for (Term tArg : tArgs) {
+            // If s ≤lpo ti for some i ∈ {1, ..., n}
             if (s.equals(tArg) || compare(s, tArg) < 0) return -1;
         }
 

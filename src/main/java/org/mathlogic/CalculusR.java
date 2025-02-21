@@ -9,96 +9,69 @@ import org.mathlogic.utility.Substitution;
 import org.mathlogic.utility.Unification;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class CalculusR {
-    private final Set<Clause> usable; // Us
-    private final Set<Clause> worked; // Wo
-
-    protected CalculusR() {
-        this(Collections.emptySet());
-    }
-
-    protected CalculusR(Set<Clause> clauses) {
-        this.usable = new HashSet<>();
-        this.worked = new HashSet<>();
-        initClauses(clauses);
-    }
-
-    public void initClauses(Set<Clause> clauses) {
-        usable.addAll(clauses);
+public abstract class CalculusR extends AutomaticCalculus {
+    @Override
+    protected void initialReduction() {
         Reduction.removeTautology(usable);
         Reduction.subsumptionReduction(usable);
         Reduction.matchingReplacementResolution(usable, usable);
     }
 
-    /**
-     * Refute the clauses. Return {@code true} if a refutation is reached,
-     * otherwise {@code false}.
-     */
-    public boolean refute() {
-        do {
-            // Returns true if we found a refutation.
-            if (refutationReached()) {
-                return true;
-            }
+    @Override
+    protected Set<Clause> inferAllPossibleClausesFromItself(Clause given) {
+        // Apply factorization on given clause
+        Set<Clause> newClauses = new HashSet<>(factorizeAllPossibleClauses(given));
 
-            // 1. Select the given clause
-            Clause given = selectGivenClause();
-            worked.add(given);
-            usable.remove(given);
+        Clause cloneGiven = given.copy();
+        // Apply renomination to make sure that the tow clause have disjoint variables
+        Renaming.renameClausesToDisjointVariable(given, cloneGiven);
 
-            // 2. Generates new clauses by inferences between given clause and clauses in Wo and Us
-            Set<Clause> newClauses = inferClauses(given, worked);
+        // Resolution on literals: from given (positive) to given (negative)
+        newClauses.addAll(resolveAllPossibleClauses(given, cloneGiven));
 
-            // 3. Apply forward reductions on new clauses
-            Reduction.removeTautology(newClauses);
-            Reduction.subsumptionReduction(newClauses);
-            Reduction.matchingReplacementResolution(newClauses, newClauses);
-            Reduction.matchingReplacementResolution(worked, newClauses);
-            Reduction.matchingReplacementResolution(usable, newClauses);
-
-            // 4. Apply backwards reductions on olds clauses in Us and Wo with the new ones
-            Reduction.matchingReplacementResolution(newClauses, worked);
-            Reduction.matchingReplacementResolution(newClauses, usable);
-
-            // 4. Add the new clauses to Us
-            usable.addAll(newClauses);
-        } while (!usable.isEmpty());
-
-        // Return false to indicate that it did not find a refutation, so it is satisfiable
-        return false;
+        return newClauses;
     }
 
-    /**
-     * Select the given clause by means of an appropriate choice function
-     * (in this case the clause with the minimum number of symbols).
-     */
-    public Clause selectGivenClause() {
-        Clause given = null;
-        for (Clause clause : usable) {
-            if (given == null || clause.compareTo(given) < 0) {
-                given = clause;
-            }
-        }
-        return given;
+    @Override
+    protected Set<Clause> inferAllPossibleClausesFromWorkedClause(Clause given, Clause clauseWo) {
+        Set<Clause> newClauses = new HashSet<>();
+
+        // Apply renomination to make sure that the tow clause have disjoint variables
+        Renaming.renameClausesToDisjointVariable(clauseWo, given);
+
+        // Resolution on literals: from given (positive) to Wo clause (negative)
+        newClauses.addAll(resolveAllPossibleClauses(given, clauseWo));
+
+        // Resolution on literals: from c (positive) to given Wo clause (negative)
+        newClauses.addAll(resolveAllPossibleClauses(clauseWo, given));
+
+        return newClauses;
     }
 
-    /**
-     * If {@code Us} contains an empty clause we have reached a refutation.
-     */
-    public boolean refutationReached() {
-        return usable.stream().anyMatch(Clause::isEmpty);
+    @Override
+    protected void forwardReduction(Set<Clause> newClauses) {
+        Reduction.removeTautology(newClauses);
+        Reduction.subsumptionReduction(newClauses);
+        Reduction.matchingReplacementResolution(newClauses, newClauses);
+        Reduction.matchingReplacementResolution(worked, newClauses);
+        Reduction.matchingReplacementResolution(usable, newClauses);
+    }
+
+    @Override
+    protected void backwardsReduction(Set<Clause> newClauses) {
+        Reduction.matchingReplacementResolution(newClauses, worked);
+        Reduction.matchingReplacementResolution(newClauses, usable);
     }
 
     /**
      * All possible right factorization of a clause.
      */
-    public Set<Clause> factorizeAllPossibleClause(Clause clause) {
+    private Set<Clause> factorizeAllPossibleClauses(Clause clause) {
         Set<Clause> factorizations = new HashSet<>();
         List<Literal> posList = new ArrayList<>(clause.getPositiveLiterals());
         // Avoid to check the same pair of literals two times
@@ -168,33 +141,6 @@ public abstract class CalculusR {
         }
 
         return null;
-    }
-
-    /**
-     * Apply all possible inference between given clause and the clauses in {@code Wo}.
-     */
-    private Set<Clause> inferClauses(Clause given, Set<Clause> worked) {
-        // Apply factorization on given clause
-        Set<Clause> newClauses = new HashSet<>(factorizeAllPossibleClause(given));
-
-        Clause cloneGiven = given.copy();
-        Renaming.renameClausesToDisjointVariable(given, cloneGiven);
-
-        // Resolution on literals: from given (positive) to given (negative)
-        newClauses.addAll(resolveAllPossibleClauses(given, cloneGiven));
-
-        for (Clause c : worked) {
-            // Apply renomination to make sure that the tow clause have disjoint variables
-            Renaming.renameClausesToDisjointVariable(c, given);
-
-            // Resolution on literals: from given (positive) to Wo clause (negative)
-            newClauses.addAll(resolveAllPossibleClauses(given, c));
-
-            // Resolution on literals: from c (positive) to given Wo clause (negative)
-            newClauses.addAll(resolveAllPossibleClauses(c, given));
-        }
-
-        return newClauses;
     }
 
     /**

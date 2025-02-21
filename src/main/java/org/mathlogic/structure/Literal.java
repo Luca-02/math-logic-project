@@ -1,5 +1,7 @@
 package org.mathlogic.structure;
 
+import org.mathlogic.exception.EmptyLogicalStructureException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -102,7 +104,7 @@ public class Literal implements LogicalStructure<Literal> {
 
     public static Literal parse(String input) {
         if (input == null || input.isEmpty()) {
-            throw new RuntimeException("Literal cannot be empty");
+            throw new EmptyLogicalStructureException();
         }
 
         input = input.replaceAll("\\s+", "");

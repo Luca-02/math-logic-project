@@ -8,9 +8,9 @@ import org.mathlogic.utility.Substitution;
 
 import java.util.Map;
 
-public class SortedCalculusR extends CalculusR {
+public class SortedCalculus extends CalculusR {
     @Override
-    protected boolean factorizationCanBeApplied(
+    public boolean factorizationCanBeApplied(
             Clause clause,
             Literal lit,
             Map<String, Term> mgu
@@ -21,7 +21,7 @@ public class SortedCalculusR extends CalculusR {
     }
 
     @Override
-    protected boolean resolutionCanBeApplied(
+    public boolean resolutionCanBeApplied(
             Clause clauseWithPos,
             Clause clauseWithNeg,
             Literal posToDelete,

@@ -1,5 +1,7 @@
 package org.mathlogic.structure;
 
+import org.mathlogic.exception.EmptyLogicalStructureException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -138,7 +140,7 @@ public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
 
     public static Clause parse(String input) {
         if (input == null || input.isEmpty()) {
-            throw new RuntimeException("Clause cannot be empty");
+            throw new EmptyLogicalStructureException();
         }
 
         input = input.replaceAll("\\s+", "");

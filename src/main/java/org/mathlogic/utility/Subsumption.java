@@ -17,7 +17,7 @@ public class Subsumption {
             for (Literal lit2 : clause2.getAllLiterals()) {
                 Map<String, Term> sigma = Unification.match(lit1, lit2);
 
-                if (checkSubsumption(clause1, clause2, sigma)) {
+                if (sigma != null && checkSubsumption(clause1, clause2, sigma)) {
                     return true;
                 }
             }
@@ -29,12 +29,12 @@ public class Subsumption {
      * Checks whether the literals set of {@code clause1} (with a substitution)
      * is contained in the literals set of {@code clause2}.
      */
-    private static boolean checkSubsumption(Clause clause1, Clause clause2, Map<String, Term> substitution) {
-        if (substitution != null) {
-            Clause subClause1 = Substitution.applySubstitution(clause1, substitution);
-            return clause2.getNegativeLiterals().containsAll(subClause1.getNegativeLiterals()) &&
-                    clause2.getPositiveLiterals().containsAll(subClause1.getPositiveLiterals());
-        }
-        return false;
+    private static boolean checkSubsumption(
+            Clause clause1,
+            Clause clause2,
+            @NotNull Map<String, Term> substitution) {
+        Clause subClause1 = Substitution.applySubstitution(clause1, substitution);
+        return clause2.getNegativeLiterals().containsAll(subClause1.getNegativeLiterals()) &&
+                clause2.getPositiveLiterals().containsAll(subClause1.getPositiveLiterals());
     }
 }

@@ -1,5 +1,7 @@
 package org.mathlogic.structure;
 
+import org.mathlogic.exception.EmptyLogicalStructureException;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -103,7 +105,7 @@ public class Term implements LogicalStructure<Term> {
 
     public static Term parse(String input) {
         if (input == null || input.isEmpty()) {
-            throw new RuntimeException("Term cannot be empty");
+            throw new EmptyLogicalStructureException();
         }
 
         input = input.replaceAll("\\s+", "");

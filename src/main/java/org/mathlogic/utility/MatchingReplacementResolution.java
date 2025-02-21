@@ -26,7 +26,7 @@ public class MatchingReplacementResolution {
             for (Literal lit2 : target.getNegativeLiterals()) {
                 Map<String, Term> sigma = Unification.match(lit1, lit2);
 
-                if (checkMatchingReplacementResolution(reference, target, lit1, lit2, sigma)) {
+                if (sigma != null && checkMatchingReplacementResolution(reference, target, lit1, lit2, sigma)) {
                     Clause updated = target.copy();
                     updated.getNegativeLiterals().remove(lit2);
                     return updated;
@@ -46,22 +46,19 @@ public class MatchingReplacementResolution {
             Clause clause2,
             Literal lit1,
             Literal lit2,
-            Map<String, Term> substitution
+            @NotNull Map<String, Term> substitution
     ) {
-        if (substitution != null) {
-            Literal subLit1 = Substitution.applySubstitution(lit1, substitution);
+        Literal subLit1 = Substitution.applySubstitution(lit1, substitution);
 
-            Clause cleanClause1 = clause1.copy();
-            cleanClause1.getPositiveLiterals().remove(lit1);
-            Clause subCleanClause1 = Substitution.applySubstitution(cleanClause1, substitution);
+        Clause cleanClause1 = clause1.copy();
+        cleanClause1.getPositiveLiterals().remove(lit1);
+        Clause subCleanClause1 = Substitution.applySubstitution(cleanClause1, substitution);
 
-            Clause cleanClause2 = clause2.copy();
-            cleanClause2.getNegativeLiterals().remove(lit2);
+        Clause cleanClause2 = clause2.copy();
+        cleanClause2.getNegativeLiterals().remove(lit2);
 
-            return subLit1.equals(lit2.negate()) &&
-                    cleanClause2.getNegativeLiterals().containsAll(subCleanClause1.getNegativeLiterals()) &&
-                    cleanClause2.getPositiveLiterals().containsAll(subCleanClause1.getPositiveLiterals());
-        }
-        return false;
+        return subLit1.equals(lit2.negate()) &&
+                cleanClause2.getNegativeLiterals().containsAll(subCleanClause1.getNegativeLiterals()) &&
+                cleanClause2.getPositiveLiterals().containsAll(subCleanClause1.getPositiveLiterals());
     }
 }

@@ -14,44 +14,26 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class CalculusRTest {
+public class CalculusRTest {
     private CalculusR baseResolver;
-    private List<CalculusR> resolvers;
+    private List<AutomaticCalculus> resolvers;
 
     @BeforeEach
     void setUp() {
         baseResolver = new SupportCalculusR();
         resolvers = List.of(
                 new DefaultCalculusR(),
-                new SortedCalculusR()
+                new SortedCalculus()
         );
     }
 
-    @ParameterizedTest(name = "{index} -> clauses={0}, givenClause={1}")
-    @MethodSource("provideParametersForSelectGivenClause")
-    void testSelectGivenClause(Set<Clause> clauses, Clause givenClause) {
-        baseResolver.initClauses(clauses);
-        Clause result = baseResolver.selectGivenClause();
-
-        assertEquals(givenClause, result);
-    }
-
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
-    @MethodSource("provideParametersForRefutationReached")
-    void testRefutationReached(Set<Clause> clauses, boolean expected) {
-        baseResolver.initClauses(clauses);
-        boolean result = baseResolver.refutationReached();
-
-        assertEquals(expected, result);
-    }
-
-    @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
-    @MethodSource("provideParametersForFactorizeAllPossibleClause")
-    void testFactorizeAllPossibleClause(Clause clause, Set<Clause> expected) {
-        Set<Clause> result = baseResolver.factorizeAllPossibleClause(clause);
+    @MethodSource("provideParametersForFactorizeClause")
+    void testFactorizeClause(Clause clause, Literal lit1, Literal lit2, Clause expected) {
+        Clause result = baseResolver.factorizeClause(clause, lit1, lit2);
 
         assertEquals(expected, result);
     }
@@ -67,73 +49,26 @@ class CalculusRTest {
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
     @MethodSource("provideParametersForRefute")
     void testRefute(Set<Clause> clauses, boolean expected) {
-        for (CalculusR resolver : resolvers) {
-            resolver.initClauses(clauses);
-            boolean result = resolver.refute();
+        for (AutomaticCalculus resolver : resolvers) {
+            boolean result = resolver.refute(clauses);
 
             assertEquals(expected, result);
         }
     }
 
-    Stream<Arguments> provideParametersForSelectGivenClause() {
-        return Stream.of(
-                Arguments.of(
-                        Set.of(
-                                Clause.parse("Q(f(?x, a), f(g(?x), ?y)) => S(f(?x, a))"),
-                                Clause.parse("=>"),
-                                Clause.parse("S(f(?x, a)) => T(f(?x, a), f(g(?x), ?y))")
-                        ),
-                        Clause.parse("=>")
-                ),
-                Arguments.of(
-                        Set.of(
-                                Clause.parse("Q(f(?x, a), f(g(?x), ?y)) =>"),
-                                Clause.parse("Q(f(?x, a), f(g(?x), ?y)) => S(f(?x, a))"),
-                                Clause.parse("S(f(?x, a)) => T(f(?x, a), f(g(?x), ?y))")
-                        ),
-                        Clause.parse("Q(f(?x, a), f(g(?x), ?y)) =>")
-                ),
-                Arguments.of(
-                        Set.of(
-                                Clause.parse("Q(f(?x, a), f(g(?x), ?y)) => S(f(?x, a))"),
-                                Clause.parse("S(f(?x, a)) => T(f(?x, a), f(g(?x), ?y))"),
-                                Clause.parse("Q(f(?x, a), f(g(?x), ?y)) => S(f(?x, a)), T(f(?x, a), f(g(?x), ?y))")
-                        ),
-                        Clause.parse("S(f(?x, a)) => T(f(?x, a), f(g(?x), ?y))")
-                )
-        );
-    }
-
-    Stream<Arguments> provideParametersForRefutationReached() {
-        return Stream.of(
-                Arguments.of(
-                        Set.of(
-                                Clause.parse("Q(f(?x, a), f(g(?x), ?y)) =>"),
-                                Clause.parse("Q(f(?x, a), f(g(?x), ?y)) => S(f(?x, a))"),
-                                Clause.parse("S(f(?x, a)) => T(f(?x, a), f(g(?x), ?y))")
-                        ),
-                        false
-                ),
-                Arguments.of(
-                        Set.of(
-                                Clause.parse("Q(f(?x, a), f(g(?x), ?y)) =>"),
-                                Clause.parse("=>"),
-                                Clause.parse("S(f(?x, a)) => T(f(?x, a), f(g(?x), ?y))")
-                        ),
-                        true
-                )
-        );
-    }
-
-    Stream<Arguments> provideParametersForFactorizeAllPossibleClause() {
+    Stream<Arguments> provideParametersForFactorizeClause() {
         return Stream.of(
                 Arguments.of(
                         Clause.parse("=> R(?x, f(?y)), R(?y, f(?x))"),
-                        Set.of(Clause.parse("=> R(?x, f(?x))"))
+                        Literal.parse("R(?y, f(?x))"),
+                        Literal.parse("R(?x, f(?y))"),
+                        Clause.parse("=> R(?x, f(?x))")
                 ),
                 Arguments.of(
                         Clause.parse("Q(f(?x, g(?y)), ?h) => P(f(?x, g(?y)), h(?z)), P(f(a, g(b)), h(c))"),
-                        Set.of(Clause.parse("Q(f(a, g(b)), ?h) => P(f(a, g(b)), h(c))"))
+                        Literal.parse("P(f(?x, g(?y)), h(?z))"),
+                        Literal.parse("P(f(a, g(b)), h(c))"),
+                        Clause.parse("Q(f(a, g(b)), ?h) => P(f(a, g(b)), h(c))")
                 )
         );
     }
@@ -216,6 +151,10 @@ class CalculusRTest {
                                 Clause.parse("R(?x, f(?y)), R(?y, f(?x)) =>")
                         ),
                         true
+                ),
+                Arguments.of(
+                        Set.of(),
+                        false // Empty clauses set
                 )
         );
     }
@@ -228,7 +167,12 @@ class CalculusRTest {
 
         @Override
         protected boolean resolutionCanBeApplied(
-                Clause clauseWithPos, Clause clauseWithNeg, Literal posToDelete, Literal negToDelete, Map<String, Term> mgu) {
+                Clause clauseWithPos,
+                Clause clauseWithNeg,
+                Literal posToDelete,
+                Literal negToDelete,
+                Map<String, Term> mgu
+        ) {
             return true;
         }
     }
