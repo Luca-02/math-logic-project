@@ -2,7 +2,7 @@ package structure;
 
 import java.util.*;
 
-import static global.Constant.NOT_SYMBOL;
+import static config.Constant.NOT_SYMBOL;
 
 /**
  * Identify a literal (atomic formula) P(t1, ..., tn),
@@ -70,8 +70,7 @@ public class Literal implements LogicalStructure {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Literal other))
-            return false;
+        if (!(o instanceof Literal other)) return false;
         return Objects.equals(isNegated, other.isNegated) &&
                 Objects.equals(predicate, other.predicate) &&
                 Objects.equals(terms, other.terms);

@@ -1,3 +1,4 @@
+import org.jetbrains.annotations.NotNull;
 import structure.Clause;
 import structure.Literal;
 import structure.Term;
@@ -18,7 +19,7 @@ public class MatchingReplacementResolution {
      * {@code Γ2, A2 => ∆2} and replace it with the simpler clause {@code Γ2 ⇒ ∆2}.
      * The method returns the clause {@code Γ2 => ∆2} with which to replace {@code Γ2, A2 => ∆2}.
      */
-    public static Clause apply(Clause reference, Clause target) {
+    public static Clause apply(@NotNull Clause reference, @NotNull Clause target) {
         for (Literal lit1 : reference.getPositiveLiterals()) {
             for (Literal lit2 : target.getNegativeLiterals()) {
                 Map<String, Term> sigma = Unification.match(lit1, lit2);
@@ -39,7 +40,12 @@ public class MatchingReplacementResolution {
      * clause and the two found literal.
      */
     private static boolean checkMatchingReplacementResolution(
-            Clause clause1, Clause clause2, Literal lit1, Literal lit2, Map<String, Term> substitution) {
+            Clause clause1,
+            Clause clause2,
+            Literal lit1,
+            Literal lit2,
+            Map<String, Term> substitution
+    ) {
         if (substitution != null) {
             Literal subLit1 = Substitution.applySubstitution(lit1, substitution);
 

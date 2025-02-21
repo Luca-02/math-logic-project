@@ -2,38 +2,36 @@ import structure.Clause;
 import structure.Literal;
 import structure.Term;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import javax.validation.constraints.NotNull;
 import java.util.Map;
-import java.util.Set;
 
 public class SortedCalculusR extends CalculusR {
-    public SortedCalculusR() {
-        super();
-    }
-
-    public SortedCalculusR(Set<Clause> clauses) {
-        super(clauses);
+    @Override
+    protected boolean factorizationCanBeApplied(
+            Clause clause,
+            Literal lit,
+            Map<String, Term> mgu
+    ) {
+        Clause subClause = Substitution.applySubstitution(clause, mgu);
+        Literal subLit = Substitution.applySubstitution(lit, mgu);
+        return MaximalLiteral.isMaximal(subLit, subClause, false);
     }
 
     @Override
-    protected boolean factorizationCanBeApplied(Clause clause, Literal lit, Map<String, Term> mgu) {
-        return mgu != null && isMaximal(lit, clause, mgu);
-    }
+    protected boolean resolutionCanBeApplied(
+            Clause clauseWithPos,
+            Clause clauseWithNeg,
+            Literal posToDelete,
+            Literal negToDelete,
+            Map<String, Term> mgu
+    ) {
+        Clause subClauseWithPos = Substitution.applySubstitution(clauseWithPos, mgu);
+        Literal subPosToDelete = Substitution.applySubstitution(posToDelete, mgu);
 
-    @Override
-    protected boolean resolutionCanBeApplied(Clause clauseWithPos, Clause clauseWithNeg, Literal posToDelete, Literal negToDelete, Map<String, Term> mgu) {
-        return mgu != null &&
-                isStrictlyMaximal(posToDelete, clauseWithPos, mgu) &&
-                isMaximal(negToDelete, clauseWithNeg, mgu);
-    }
+        Clause subClauseWithNeg = Substitution.applySubstitution(clauseWithNeg, mgu);
+        Literal subNegToDelete = Substitution.applySubstitution(negToDelete, mgu);
 
-    public boolean isStrictlyMaximal(Literal lit, Clause clause, Map<String, Term> mgu) {
-        return false;
-    }
-
-    public boolean isMaximal(Literal lit, Clause clause, Map<String, Term> mgu) {
-        return false;
+        return MaximalLiteral.isMaximal(subPosToDelete, subClauseWithPos, true) &&
+                MaximalLiteral.isMaximal(subNegToDelete, subClauseWithNeg, false);
     }
 }

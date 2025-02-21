@@ -2,6 +2,7 @@ package comparator;
 
 import structure.Term;
 
+import javax.validation.constraints.NotNull;
 import java.util.Comparator;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class LpoComparator implements Comparator<Term> {
      * where {@code s <=lpo t} is shorthand for {@code s = t or s <lpo t}.
      */
     @Override
-    public int compare(Term s, Term t) {
+    public int compare(@NotNull Term s, @NotNull Term t) {
         if (s.equals(t)) return 0;
         if (s.equals(Term.MINIMAL)) return -1;
         if (t.equals(Term.MINIMAL)) return 1;

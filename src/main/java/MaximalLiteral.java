@@ -1,4 +1,5 @@
 import comparator.MultisetComparator;
+import org.jetbrains.annotations.NotNull;
 import structure.Clause;
 import structure.Literal;
 import structure.Term;
@@ -9,7 +10,11 @@ import java.util.Map;
 public class MaximalLiteral {
     private static final Comparator<Map<Term , Integer>> comparator = new MultisetComparator();
 
-    public static boolean isMaximal(Literal lit, Clause clause, boolean strictlyMaximal) {
+    public static boolean isMaximal(
+            @NotNull Literal lit,
+            @NotNull Clause clause,
+            boolean strictlyMaximal
+    ) {
         Map<Term, Integer> litMultiset = lit.getMultiset();
         for (Literal cLit : clause.getAllLiterals()) {
             if (lit.equals(cLit)) continue;

@@ -2,7 +2,12 @@ import structure.Clause;
 import structure.Literal;
 import structure.Term;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class CalculusR {
     private final Set<Clause> usable; // Us
@@ -85,33 +90,6 @@ public abstract class CalculusR {
     }
 
     /**
-     * Apply all possible inference between given clause and the clauses in {@code Wo}.
-     */
-    private Set<Clause> inferClauses(Clause given, Set<Clause> worked) {
-        // Apply factorization on given clause
-        Set<Clause> newClauses = new HashSet<>(factorizeAllPossibleClause(given));
-
-        Clause cloneGiven = given.clone();
-        Renaming.renameClausesToDisjointVariable(given, cloneGiven);
-
-        // Resolution on literals: from given (positive) to given (negative)
-        newClauses.addAll(resolveAllPossibleClauses(given, cloneGiven));
-
-        for (Clause c : worked) {
-            // Apply renomination to make sure that the tow clause have disjoint variables
-            Renaming.renameClausesToDisjointVariable(c, given);
-
-            // Resolution on literals: from given (positive) to Wo clause (negative)
-            newClauses.addAll(resolveAllPossibleClauses(given, c));
-
-            // Resolution on literals: from c (positive) to given Wo clause (negative)
-            newClauses.addAll(resolveAllPossibleClauses(c, given));
-        }
-
-        return newClauses;
-    }
-
-    /**
      * All possible right factorization of a clause.
      */
     public Set<Clause> factorizeAllPossibleClause(Clause clause) {
@@ -153,7 +131,7 @@ public abstract class CalculusR {
     public Clause factorizeClause(Clause clause, Literal lit1, Literal lit2) {
         Map<String, Term> mgu = Unification.unify(lit1, lit2);
 
-        if (factorizationCanBeApplied(clause, lit1, mgu)) {
+        if (mgu != null && factorizationCanBeApplied(clause, lit1, mgu)) {
             // By applying the substitution on the clause, it will automatically merge
             // the literals A and B on which the unification has been done through the mgu
             return Substitution.applySubstitution(clause, mgu);
@@ -167,7 +145,7 @@ public abstract class CalculusR {
     public Clause resolveClauses(Clause clauseWithPos, Clause clauseWithNeg, Literal posToDelete, Literal negToDelete) {
         Map<String, Term> mgu = Unification.unify(posToDelete, negToDelete);
 
-        if (resolutionCanBeApplied(clauseWithPos, clauseWithNeg, posToDelete, negToDelete, mgu)) {
+        if (mgu != null && resolutionCanBeApplied(clauseWithPos, clauseWithNeg, posToDelete, negToDelete, mgu)) {
             Clause clauseWithPosClone = clauseWithPos.clone();
             Clause clauseWithNegClone = clauseWithNeg.clone();
             clauseWithPosClone.getPositiveLiterals().remove(posToDelete);
@@ -186,7 +164,47 @@ public abstract class CalculusR {
         return null;
     }
 
-    protected abstract boolean factorizationCanBeApplied(Clause clause, Literal lit, Map<String, Term> mgu);
+    /**
+     * Apply all possible inference between given clause and the clauses in {@code Wo}.
+     */
+    private Set<Clause> inferClauses(Clause given, Set<Clause> worked) {
+        // Apply factorization on given clause
+        Set<Clause> newClauses = new HashSet<>(factorizeAllPossibleClause(given));
+
+        Clause cloneGiven = given.clone();
+        Renaming.renameClausesToDisjointVariable(given, cloneGiven);
+
+        // Resolution on literals: from given (positive) to given (negative)
+        newClauses.addAll(resolveAllPossibleClauses(given, cloneGiven));
+
+        for (Clause c : worked) {
+            // Apply renomination to make sure that the tow clause have disjoint variables
+            Renaming.renameClausesToDisjointVariable(c, given);
+
+            // Resolution on literals: from given (positive) to Wo clause (negative)
+            newClauses.addAll(resolveAllPossibleClauses(given, c));
+
+            // Resolution on literals: from c (positive) to given Wo clause (negative)
+            newClauses.addAll(resolveAllPossibleClauses(c, given));
+        }
+
+        return newClauses;
+    }
+
+    /**
+     * Function that returns whether the factorization rule can be applied according to
+     * certain rules with respect to the type of calculus being adopted.
+     */
+    protected abstract boolean factorizationCanBeApplied(
+            Clause clause,
+            Literal lit,
+            Map<String, Term> mgu
+    );
+
+    /**
+     * Function that returns whether the resolution rule can be applied according to
+     * certain rules with respect to the type of calculus being adopted.
+     */
     protected abstract boolean resolutionCanBeApplied(
             Clause clauseWithPos,
             Clause clauseWithNeg,

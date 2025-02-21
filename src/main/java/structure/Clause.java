@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static global.Constant.CLAUSE_LITERALS_DIVISOR;
+import static config.Constant.CLAUSE_LITERALS_DIVISOR;
 
 /**
  * Represent a clause, a disjunction of literals.
@@ -83,8 +83,7 @@ public class Clause implements LogicalStructure, Comparable<Clause> {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Clause other))
-            return false;
+        if (!(o instanceof Clause other)) return false;
         return Objects.equals(negativeLiterals, other.negativeLiterals) &&
                 Objects.equals(positiveLiterals, other.positiveLiterals);
     }

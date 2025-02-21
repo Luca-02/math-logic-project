@@ -2,6 +2,7 @@ import structure.Equation;
 import structure.Literal;
 import structure.Term;
 
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,10 +11,13 @@ import java.util.Objects;
 
 public class Unification {
     /**
-     * Tests whether substitutions applied to two literals make them unify correctly.
+     * Control whether substitutions applied to two literals make them unify correctly.
      */
     public static boolean unificationCorrectness(
-            Literal lit1, Literal lit2, Map<String, Term> substitutions) {
+            @NotNull Literal lit1,
+            @NotNull Literal lit2,
+            @NotNull Map<String, Term> substitutions
+    ) {
         Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
         Literal subLit2 = Substitution.applySubstitution(lit2, substitutions);
 
@@ -25,10 +29,13 @@ public class Unification {
     }
 
     /**
-     * Tests whether substitutions applied to one literal yield the other literal.
+     * Control whether substitutions applied to one literals produce the other literal.
      */
     public static boolean matchingCorrectness(
-            Literal lit1, Literal lit2, Map<String, Term> substitutions) {
+            @NotNull Literal lit1,
+            @NotNull Literal lit2,
+            @NotNull Map<String, Term> substitutions
+    ) {
         Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
 
         if (subLit1.isNegated() != lit2.isNegated()) {
@@ -42,7 +49,7 @@ public class Unification {
      * Unify two literals. Returns a substitution map if unification succeeds,
      * otherwise returns {@code null}.
      */
-    public static Map<String, Term> unify(Literal l1, Literal l2) {
+    public static Map<String, Term> unify(@NotNull Literal l1, @NotNull Literal l2) {
         return unifyOrMatch(l1, l2, true);
     }
 
@@ -50,14 +57,33 @@ public class Unification {
      * Matching two literals. Returns a substitution map if the match is successful,
      * otherwise returns {@code null}.
      */
-    public static Map<String, Term> match(Literal l1, Literal l2) {
+    public static Map<String, Term> match(@NotNull Literal l1, @NotNull Literal l2) {
         return unifyOrMatch(l1, l2, false);
     }
 
     /**
-     * General Method for Unification and Matching.
+     * <b>Unification rule 5:</b> fail if {@code f(t1, ..., tn) ?= g(u1, ..., um)} with {@code f != g (or n != m)}.
      */
-    private static Map<String, Term> unifyOrMatch(Literal l1, Literal l2, boolean isUnification) {
+    public static boolean isFailing(Term t1, Term t2) {
+        return !t1.getName().equals(t2.getName()) ||
+                t1.getArguments().size() != t2.getArguments().size();
+    }
+
+    /**
+     * <b>Unification rule 6:</b> fail if {@code x ?= t with x != t} but {@code x} occurring in {@code t}.
+     */
+    public static boolean occurCheck(Term t1, Term t2) {
+        return !t1.equals(t2) && t1.occurIn(t2);
+    }
+
+    /**
+     * General method for unification and matching.
+     */
+    private static Map<String, Term> unifyOrMatch(
+            Literal l1,
+            Literal l2,
+            boolean isUnification
+    ) {
         if (hasDifferentStructure(l1, l2)) {
             return null;
         }
@@ -71,6 +97,7 @@ public class Unification {
         do {
             changed = false;
             int equationSize = equations.size();
+            List<Equation> equationsToDelete = new ArrayList<>();
 
             for (int i = 0; i < equationSize; i++) {
                 Equation equation = equations.get(i);
@@ -79,7 +106,7 @@ public class Unification {
 
                 // Rule 1: delete t ?= t
                 if (t1.equals(t2)) {
-                    equation.markToDelete();
+                    equationsToDelete.add(equation);
                     continue;
                 }
 
@@ -89,7 +116,7 @@ public class Unification {
                     if (isFailing(t1, t2)) {
                         return null;
                     }
-                    equation.markToDelete();
+                    equationsToDelete.add(equation);
                     for (int j = 0; j < t1.getArguments().size(); j++) {
                         equations.add(new Equation(t1.getArguments().get(j), t2.getArguments().get(j)));
                     }
@@ -120,7 +147,10 @@ public class Unification {
             }
 
             // Remove the equation founded and marked to delete
-            equations.removeIf(Equation::toDelete);
+            for (Equation toDelete : equationsToDelete) {
+                equations.remove(toDelete);
+            }
+            equationsToDelete.clear();
         } while (changed);
 
         Map<String, Term> substitutions = new HashMap<>();
@@ -129,21 +159,6 @@ public class Unification {
         }
 
         return substitutions.isEmpty() ? null : substitutions;
-    }
-
-    /**
-     * Rule 5: fail if {@code f(t1, ..., tn) ?= g(u1, ..., um)} with {@code f != g (or n != m)}.
-     */
-    public static boolean isFailing(Term t1, Term t2) {
-        return !t1.getName().equals(t2.getName()) ||
-                t1.getArguments().size() != t2.getArguments().size();
-    }
-
-    /**
-     * Rule 6: fail if {@code x ?= t with x != t} but {@code x} occurring in {@code t}.
-     */
-    public static boolean occurCheck(Term t1, Term t2) {
-        return !t1.equals(t2) && t1.occurIn(t2);
     }
 
     /**
@@ -158,7 +173,11 @@ public class Unification {
      * Replaces all occurrences of a variable with one term in equations.
      */
     private static List<Equation> applySubstitutionToEquations(
-            List<Equation> equations, String target, Term substitute, Equation equationToAvoid) {
+            List<Equation> equations,
+            String target,
+            Term substitute,
+            Equation equationToAvoid
+    ) {
         Map<String, Term> substitution = Map.of(target, substitute);
         List<Equation> updatedEquations = new ArrayList<>();
         boolean modified = false;

@@ -1,19 +1,23 @@
 import structure.Clause;
 import structure.Term;
 
+import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static global.Constant.RENAMING_VARIABLE_SYMBOL;
+import static config.Constant.RENAMING_VARIABLE_SYMBOL;
 
 public class Renaming {
     /**
      * Rename the clause variables so that they have disjoint variables
      * between them.
      */
-    public static void renameClausesToDisjointVariable(Clause original, Clause toRename) {
+    public static void renameClausesToDisjointVariable(
+            @NotNull Clause original,
+            @NotNull Clause toRename
+    ) {
         Map<String, Term> substitutions = getSubstitutionForDisjointVariables(original, toRename);
 
         if (substitutions != null) {
@@ -25,7 +29,10 @@ public class Renaming {
      * Create a substitution map for two clause so that, if applied,
      * they have disjoint variables between them.
      */
-    public static Map<String, Term> getSubstitutionForDisjointVariables(Clause original, Clause toRename) {
+    public static Map<String, Term> getSubstitutionForDisjointVariables(
+            @NotNull Clause original,
+            @NotNull Clause toRename
+    ) {
         Set<String> originalVariables = new HashSet<>(original.collectSymbols());
         Set<String> toRenameVariables = new HashSet<>(toRename.collectSymbols());
         originalVariables.removeIf(symbol -> symbol.charAt(0) != '?');

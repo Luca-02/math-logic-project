@@ -5,14 +5,14 @@ import java.util.Set;
 
 public class Reduction {
     /**
-     * <b>Taut</b>: remove tautological clauses.
+     * <b>Taut:</b> remove tautological clauses.
      */
     public static void removeTautology(Set<Clause> clauses) {
         clauses.removeIf(Clause::isTautology);
     }
 
     /**
-     * <b>Sub</b>: remove subsumed clauses.
+     * <b>Sub:</b> remove subsumed clauses.
      */
     public static void subsumptionReduction(Set<Clause> clauses) {
         Set<Clause> toRemove = new HashSet<>();
@@ -33,7 +33,7 @@ public class Reduction {
     }
 
     /**
-     * <b>MRR</b>: update target's clauses using Matching Replacement Resolution.
+     * <b>MRR:</b> update target's clauses using Matching Replacement Resolution.
      */
     public static void matchingReplacementResolution(Set<Clause> reference, Set<Clause> target) {
         for (Clause ref : reference) {

@@ -3,17 +3,15 @@ package structure;
 import java.util.Objects;
 
 /**
- * Identify an equation t ?= h, where t and h are terms.
+ * Identify an equation {@code t ?= h}, where {@code t} and {@code h} are terms.
  */
 public class Equation {
     private Term first;
     private Term second;
-    private boolean toDelete;
 
     public Equation(Term first, Term second) {
         this.first = first;
         this.second = second;
-        this.toDelete = false;
     }
 
     public Term getFirst() {
@@ -24,14 +22,6 @@ public class Equation {
         return second;
     }
 
-    public boolean toDelete() {
-        return toDelete;
-    }
-
-    public void markToDelete() {
-        toDelete = true;
-    }
-
     public void swap() {
         Term temp = this.first;
         this.first = this.second;
@@ -40,8 +30,7 @@ public class Equation {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Equation pair))
-            return false;
+        if (!(o instanceof Equation pair)) return false;
         return Objects.equals(first, pair.first) &&
                 Objects.equals(second, pair.second);
     }

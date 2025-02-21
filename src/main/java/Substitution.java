@@ -2,6 +2,7 @@ import structure.Clause;
 import structure.Literal;
 import structure.Term;
 
+import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,10 @@ public class Substitution {
     /**
      * Apply a given substitution to a term.
      */
-    public static Term applySubstitution(Term term, Map<String, Term> substitutions) {
+    public static Term applySubstitution(
+            @NotNull Term term,
+            @NotNull Map<String, Term> substitutions
+    ) {
         if (term.isVariable()) {
             Term sub = substitutions.get(term.getName());
             return sub != null ? sub.clone() : term;
@@ -27,7 +31,10 @@ public class Substitution {
     /**
      * Apply a given substitution to a literal.
      */
-    public static Literal applySubstitution(Literal lit, Map<String, Term> substitutions) {
+    public static Literal applySubstitution(
+            @NotNull Literal lit,
+            @NotNull Map<String, Term> substitutions
+    ) {
         List<Term> substitutedTerms = lit.getTerms().stream()
                 .map(term -> applySubstitution(term, substitutions))
                 .collect(Collectors.toList());
@@ -37,7 +44,10 @@ public class Substitution {
     /**
      * Apply a given substitution to a clause.
      */
-    public static Clause applySubstitution(Clause clause, Map<String, Term> substitutions) {
+    public static Clause applySubstitution(
+            @NotNull Clause clause,
+            @NotNull Map<String, Term> substitutions
+    ) {
         Set<Literal> literals = new HashSet<>();
         for (Literal lit : clause.getNegativeLiterals()) {
             literals.add(applySubstitution(lit, substitutions));

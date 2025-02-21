@@ -2,6 +2,7 @@ package comparator;
 
 import structure.Term;
 
+import javax.validation.constraints.NotNull;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +20,10 @@ public class MultisetComparator implements Comparator<Map<Term , Integer>> {
      * than {@code x}.
      */
     @Override
-    public int compare(Map<Term , Integer> m, Map<Term , Integer> n) {
+    public int compare(
+            @NotNull Map<Term , Integer> m,
+            @NotNull Map<Term , Integer> n
+    ) {
         if (m.equals(n)) return 0;
 
         if (canTransformReduction(m, n)) return 1;
@@ -30,7 +34,10 @@ public class MultisetComparator implements Comparator<Map<Term , Integer>> {
     /**
      * A reduction is applied to the problem from multisets of terms to multisets of integers.
      */
-    public boolean canTransformReduction(Map<Term, Integer> m, Map<Term, Integer> n) {
+    public boolean canTransformReduction(
+            @NotNull Map<Term, Integer> m,
+            @NotNull Map<Term, Integer> n
+    ) {
         Map<Term, Integer> integerMapping = createIntegerMapping(m, n);
         Map<Integer, Integer> reducedM = reduceToIntegerMultiset(m, integerMapping);
         Map<Integer, Integer> reducedN = reduceToIntegerMultiset(n, integerMapping);
@@ -42,7 +49,10 @@ public class MultisetComparator implements Comparator<Map<Term , Integer>> {
      * transformations that replace an element {@code x} in {@code M} with a multiset of elements
      * all strictly minor than {@code x}.
      */
-    public boolean canTransform(Map<Integer, Integer> m, Map<Integer, Integer> n) {
+    public boolean canTransform(
+            @NotNull Map<Integer, Integer> m,
+            @NotNull Map<Integer, Integer> n
+    ) {
         // Let's determine the maximum value present in the two mappings
         int maxVal = 0;
         for (int key : m.keySet()) {
@@ -83,22 +93,12 @@ public class MultisetComparator implements Comparator<Map<Term , Integer>> {
     }
 
     /**
-     * Reduces a multiset of terms to a multiset of integers with a given term to integer mapping.
-     * The terms are sorted using {@link LpoComparator}, and each term is mapped to an integer key.
-     */
-    private Map<Integer, Integer> reduceToIntegerMultiset(
-            Map<Term , Integer> multiset, Map<Term , Integer> integerMapping) {
-        Map<Integer, Integer> reduction = new HashMap<>();
-        for (Map.Entry<Term, Integer> entry : multiset.entrySet()) {
-            reduction.put(integerMapping.get(entry.getKey()), entry.getValue());
-        }
-        return reduction;
-    }
-
-    /**
      * Create a term to integer mapping from two given multisets of terms.
      */
-    private Map<Term, Integer> createIntegerMapping(Map<Term, Integer> m, Map<Term, Integer> n) {
+    private Map<Term, Integer> createIntegerMapping(
+            Map<Term, Integer> m,
+            Map<Term, Integer> n
+    ) {
         Set<Term> elements = new TreeSet<>(comparator);
         elements.addAll(m.keySet());
         elements.addAll(n.keySet());
@@ -115,5 +115,20 @@ public class MultisetComparator implements Comparator<Map<Term , Integer>> {
         }
 
         return integerMapping;
+    }
+
+    /**
+     * Reduces a multiset of terms to a multiset of integers with a given term to integer mapping.
+     * The terms are sorted using {@link LpoComparator}, and each term is mapped to an integer key.
+     */
+    private Map<Integer, Integer> reduceToIntegerMultiset(
+            Map<Term , Integer> multiset,
+            Map<Term , Integer> integerMapping
+    ) {
+        Map<Integer, Integer> reduction = new HashMap<>();
+        for (Map.Entry<Term, Integer> entry : multiset.entrySet()) {
+            reduction.put(integerMapping.get(entry.getKey()), entry.getValue());
+        }
+        return reduction;
     }
 }
