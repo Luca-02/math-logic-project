@@ -89,12 +89,12 @@ class AutomaticCalculusTest {
 
     private static class SupportAutomaticCalculus extends AutomaticCalculus {
         @Override
-        protected Set<Clause> inferAllPossibleClausesFromItself(Clause given) {
+        protected Set<Clause> inferAllPossibleClausesFromItself(Clause given, Clause renamedGiven) {
             return Set.of();
         }
 
         @Override
-        protected Set<Clause> inferAllPossibleClausesFromWorkedClause(Clause given, Clause clauseWo) {
+        protected Set<Clause> inferAllPossibleClausesFromWorkedClause(Clause given, Clause renamedClauseWo) {
             return Set.of();
         }
     }

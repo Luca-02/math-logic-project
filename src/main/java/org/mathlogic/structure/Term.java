@@ -1,6 +1,6 @@
 package org.mathlogic.structure;
 
-import org.mathlogic.exception.EmptyLogicalStructureException;
+import org.mathlogic.utility.Parsing;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -19,6 +19,9 @@ public class Term implements LogicalStructure<Term> {
      */
     public static final Term MINIMAL = new Term("true");
 
+    /**
+     * Term's function name.
+     */
     private final String name;
     private final List<Term> arguments;
 
@@ -109,13 +112,11 @@ public class Term implements LogicalStructure<Term> {
     }
 
     public static Term parse(@NotNull String input) {
-        if (input.isEmpty()) {
-            throw new EmptyLogicalStructureException();
-        }
+        Parsing.checkEmptyLogicalStructure(input);
 
-        input = input.replaceAll("\\s+", "");
+        input = Parsing.removeWhitespace(input);
 
-        if (!input.contains("(") || !input.contains(")")) {
+        if (Parsing.dontContainsParentheses(input)) {
             return new Term(input);
         }
 
@@ -123,8 +124,13 @@ public class Term implements LogicalStructure<Term> {
         int closeParen = input.lastIndexOf(")");
         String functionName = input.substring(0, openParen);
         String argsString = input.substring(openParen + 1, closeParen);
-        List<Term> arguments = new ArrayList<>();
+        List<Term> arguments = parseArguments(argsString);
 
+        return new Term(functionName, arguments);
+    }
+
+    public static List<Term> parseArguments(String argsString) {
+        List<Term> arguments = new ArrayList<>();
         int depth = 0;
         StringBuilder currentArg = new StringBuilder();
         for (char c : argsString.toCharArray()) {
@@ -142,6 +148,6 @@ public class Term implements LogicalStructure<Term> {
             arguments.add(parse(currentArg.toString().trim()));
         }
 
-        return new Term(functionName, arguments);
+        return arguments;
     }
 }

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mathlogic.exception.ParsingEmptyLogicalStructureException;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -23,6 +24,11 @@ class LiteralTest {
     @MethodSource("provideParametersForGetMultisetView")
     void testGetMultisetView(Literal literal, Map<Term, Integer> expected) {
         assertEquals(expected, literal.getMultisetView());
+    }
+
+    @Test
+    void testInvalidLiteral() {
+        assertThrows(ParsingEmptyLogicalStructureException.class, () -> Literal.parse(""));
     }
 
     @Test

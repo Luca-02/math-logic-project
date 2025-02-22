@@ -3,7 +3,6 @@ package org.mathlogic;
 import org.mathlogic.structure.Clause;
 import org.mathlogic.structure.Literal;
 import org.mathlogic.structure.Term;
-import org.mathlogic.utility.Renaming;
 import org.mathlogic.utility.Substitution;
 import org.mathlogic.utility.Unification;
 
@@ -15,32 +14,25 @@ import java.util.Set;
 
 public abstract class CalculusR extends AutomaticCalculus {
     @Override
-    protected Set<Clause> inferAllPossibleClausesFromItself(Clause given) {
+    protected Set<Clause> inferAllPossibleClausesFromItself(Clause given, Clause renamedGiven) {
         // Apply factorization on given clause
         Set<Clause> newClauses = new HashSet<>(factorizeAllPossibleClauses(given));
 
-        Clause cloneGiven = given.copy();
-        // Apply renomination to make sure that the tow clause have disjoint variables
-        Renaming.renameClausesToDisjointVariable(given, cloneGiven);
-
         // Resolution on literals: from given (positive) to given (negative)
-        newClauses.addAll(resolveAllPossibleClauses(given, cloneGiven));
+        newClauses.addAll(resolveAllPossibleClauses(given, renamedGiven));
 
         return newClauses;
     }
 
     @Override
-    protected Set<Clause> inferAllPossibleClausesFromWorkedClause(Clause given, Clause clauseWo) {
+    protected Set<Clause> inferAllPossibleClausesFromWorkedClause(Clause given, Clause renamedClauseWo) {
         Set<Clause> newClauses = new HashSet<>();
 
-        // Apply renomination to make sure that the tow clause have disjoint variables
-        Renaming.renameClausesToDisjointVariable(clauseWo, given);
-
         // Resolution on literals: from given (positive) to Wo clause (negative)
-        newClauses.addAll(resolveAllPossibleClauses(given, clauseWo));
+        newClauses.addAll(resolveAllPossibleClauses(given, renamedClauseWo));
 
         // Resolution on literals: from c (positive) to given Wo clause (negative)
-        newClauses.addAll(resolveAllPossibleClauses(clauseWo, given));
+        newClauses.addAll(resolveAllPossibleClauses(renamedClauseWo, given));
 
         return newClauses;
     }

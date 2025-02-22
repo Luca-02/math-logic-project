@@ -1,7 +1,7 @@
 package org.mathlogic.structure;
 
 import org.jetbrains.annotations.NotNull;
-import org.mathlogic.exception.EmptyLogicalStructureException;
+import org.mathlogic.utility.Parsing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -108,18 +108,16 @@ public class Literal implements LogicalStructure<Literal> {
     }
 
     public static Literal parse(@NotNull String input) {
-        if (input.isEmpty()) {
-            throw new EmptyLogicalStructureException();
-        }
+        Parsing.checkEmptyLogicalStructure(input);
 
-        input = input.replaceAll("\\s+", "");
+        input = Parsing.removeWhitespace(input);
 
-        boolean isNegated = input.startsWith("¬");
+        boolean isNegated = input.startsWith(NOT_SYMBOL);
         if (isNegated) {
             input = input.substring(1);
         }
 
-        if (!input.contains("(") || !input.contains(")")) {
+        if (Parsing.dontContainsParentheses(input)) {
             return new Literal(isNegated, input);
         }
 
@@ -128,23 +126,7 @@ public class Literal implements LogicalStructure<Literal> {
         String predicate = input.substring(0, openParen);
         String argsString = input.substring(openParen + 1, closeParen);
 
-        List<Term> terms = new ArrayList<>();
-        int depth = 0;
-        StringBuilder currentArg = new StringBuilder();
-        for (char c : argsString.toCharArray()) {
-            if (c == ',' && depth == 0) {
-                terms.add(Term.parse(currentArg.toString().trim()));
-                currentArg = new StringBuilder();
-            } else {
-                if (c == '(') depth++;
-                if (c == ')') depth--;
-                currentArg.append(c);
-            }
-        }
-
-        if (!currentArg.isEmpty()) {
-            terms.add(Term.parse(currentArg.toString().trim()));
-        }
+        List<Term> terms = Term.parseArguments(argsString);
 
         return new Literal(isNegated, predicate, terms);
     }

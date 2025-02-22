@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 /**
- * Identify an equation {@code t ?= h}, where {@code t} and {@code h} are terms.
+ * Identify an equation {@code t ?= u}, where {@code t} and {@code u} are terms.
  */
 public class Equation {
     private Term left;

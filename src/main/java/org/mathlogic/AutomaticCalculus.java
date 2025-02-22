@@ -2,6 +2,7 @@ package org.mathlogic;
 
 import org.mathlogic.structure.Clause;
 import org.mathlogic.utility.Reduction;
+import org.mathlogic.utility.Renaming;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -85,9 +86,16 @@ public abstract class AutomaticCalculus {
      * Apply all possible inference between given clause, itself and the clauses of {@code Wo}.
      */
     private Set<Clause> inferAllPossibleClauses(Clause given) {
-        Set<Clause> newClauses = new HashSet<>(inferAllPossibleClausesFromItself(given));
+        Clause cloneGiven = given.copy();
+        // Apply renomination to make sure that the tow clause have disjoint variables
+        Renaming.renameClausesToDisjointVariable(given, cloneGiven);
+
+        Set<Clause> newClauses = new HashSet<>(inferAllPossibleClausesFromItself(given, cloneGiven));
 
         for (Clause clauseWo : worked) {
+            // Apply renomination to make sure that the tow clause have disjoint variables
+            Renaming.renameClausesToDisjointVariable(clauseWo, given);
+
             newClauses.addAll(inferAllPossibleClausesFromWorkedClause(given, clauseWo));
         }
 
@@ -123,12 +131,14 @@ public abstract class AutomaticCalculus {
     }
 
     /**
-     * Apply all possible inference between given clause and itself.
+     * Apply all possible inference between given clause and itself renamed so that
+     * they have disjoint variable.
      */
-    protected abstract Set<Clause> inferAllPossibleClausesFromItself(Clause given);
+    protected abstract Set<Clause> inferAllPossibleClausesFromItself(Clause given, Clause renamedGiven);
 
     /**
-     * Apply all possible inference between given clause and a clause of {@code Wo}.
+     * Apply all possible inference between given clause and a clause of {@code Wo} renamed
+     * so that they have disjoint variable.
      */
-    protected abstract Set<Clause> inferAllPossibleClausesFromWorkedClause(Clause given, Clause clauseWo);
+    protected abstract Set<Clause> inferAllPossibleClausesFromWorkedClause(Clause given, Clause renamedClauseWo);
 }

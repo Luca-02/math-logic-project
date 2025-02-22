@@ -3,11 +3,9 @@ package org.mathlogic;
 import org.mathlogic.structure.Clause;
 import org.mathlogic.structure.Literal;
 import org.mathlogic.structure.Term;
-import org.mathlogic.utility.Renaming;
-import org.mathlogic.utility.Substitution;
-import org.mathlogic.utility.Unification;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultCalculusR extends CalculusR {
     @Override

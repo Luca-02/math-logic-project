@@ -5,6 +5,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mathlogic.exception.ParsingEmptyLogicalStructureException;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -32,6 +33,11 @@ class TermTest {
         }
         assertEquals(termStr, term.toString());
         assertEquals(symbolNumber, term.collectSymbols().size());
+    }
+
+    @Test
+    void testInvalidTerm() {
+        assertThrows(ParsingEmptyLogicalStructureException.class, () -> Term.parse(""));
     }
 
     @Test

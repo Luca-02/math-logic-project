@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class CalculusRTest {
+class CalculusRTest {
     private CalculusR baseResolver;
     private List<AutomaticCalculus> resolvers;
 

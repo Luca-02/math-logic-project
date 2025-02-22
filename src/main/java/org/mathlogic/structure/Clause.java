@@ -1,8 +1,8 @@
 package org.mathlogic.structure;
 
 import org.jetbrains.annotations.NotNull;
-import org.mathlogic.exception.EmptyLogicalStructureException;
 import org.mathlogic.utility.MaximalLiteral;
+import org.mathlogic.utility.Parsing;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,11 +45,16 @@ public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
                 positiveLiterals.add(lit);
             }
         }
+        setMaximalLiteralsSets();
+    }
 
-        for (Literal lit : literals) {
-            if (lit.isNegated() && MaximalLiteral.isMaximal(lit, this)) {
+    private void setMaximalLiteralsSets() {
+        Set<Literal> maximalLiteral = MaximalLiteral.getMaximalLiterals(this);
+
+        for (Literal lit : maximalLiteral) {
+            if (lit.isNegated()) {
                 maximalNegativeLiterals.add(lit);
-            } else if (MaximalLiteral.isMaximal(lit, this)) {
+            } else {
                 maximalPositiveLiterals.add(lit);
             }
         }
@@ -169,11 +174,9 @@ public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
     }
 
     public static Clause parse(@NotNull String input) {
-        if (input.isEmpty()) {
-            throw new EmptyLogicalStructureException();
-        }
+        Parsing.checkEmptyLogicalStructure(input);
 
-        input = input.replaceAll("\\s+", "");
+        input = Parsing.removeWhitespace(input);
 
         String[] parts = input.split(CLAUSE_LITERALS_DIVISOR, 2);
 

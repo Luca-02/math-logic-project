@@ -1,6 +1,7 @@
 package org.mathlogic.structure;
 
 import org.junit.jupiter.api.Test;
+import org.mathlogic.exception.ParsingEmptyLogicalStructureException;
 
 import java.util.List;
 
@@ -15,6 +16,11 @@ class ClauseTest {
     String litStr1 = String.format("%s(%s)", predicate1, termStr1);
     String litStr2 = String.format("%s(%s, %s)", predicate2, termStr1, termStr2);
     String litStr3 = String.format("%s(%s, %s)", predicate3, termStr1, termStr2);
+
+    @Test
+    void testInvalidClause() {
+        assertThrows(ParsingEmptyLogicalStructureException.class, () -> Clause.parse(""));
+    }
 
     @Test
     void testEmptyClause() {
