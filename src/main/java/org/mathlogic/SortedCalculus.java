@@ -26,11 +26,7 @@ public class SortedCalculus extends CalculusR {
     }
 
     @Override
-    public boolean factorizationCanBeApplied(
-            Clause clause,
-            Literal lit,
-            Map<String, Term> mgu
-    ) {
+    public boolean factorizationCanBeApplied(Clause clause, Literal lit, Map<String, Term> mgu) {
         Clause subClause = Substitution.applySubstitution(clause, mgu);
         Literal subLit = Substitution.applySubstitution(lit, mgu);
         return MaximalLiteral.isMaximal(subLit, subClause);

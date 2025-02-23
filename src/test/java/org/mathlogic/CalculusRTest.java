@@ -7,10 +7,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mathlogic.structure.Clause;
 import org.mathlogic.structure.Literal;
-import org.mathlogic.structure.Term;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -23,9 +21,9 @@ class CalculusRTest {
 
     @BeforeEach
     void setUp() {
-        baseResolver = new SupportCalculusR();
+        baseResolver = new CalculusR();
         resolvers = List.of(
-                new DefaultCalculusR(),
+                new CalculusR(),
                 new SortedCalculus()
         );
     }
@@ -157,38 +155,5 @@ class CalculusRTest {
                         false // Empty clauses set
                 )
         );
-    }
-
-    private static class SupportCalculusR extends CalculusR {
-        @Override
-        protected Set<Literal> getPossibleFactorizableLiterals(Clause clause) {
-            return Set.of();
-        }
-
-        @Override
-        protected Set<Literal> getPossibleSolvablePositiveLiterals(Clause clause) {
-            return Set.of();
-        }
-
-        @Override
-        protected Set<Literal> getPossibleSolvableNegativeLiterals(Clause clause) {
-            return Set.of();
-        }
-
-        @Override
-        protected boolean factorizationCanBeApplied(Clause clause, Literal lit, Map<String, Term> mgu) {
-            return true;
-        }
-
-        @Override
-        protected boolean resolutionCanBeApplied(
-                Clause clauseWithPos,
-                Clause clauseWithNeg,
-                Literal posToDelete,
-                Literal negToDelete,
-                Map<String, Term> mgu
-        ) {
-            return true;
-        }
     }
 }

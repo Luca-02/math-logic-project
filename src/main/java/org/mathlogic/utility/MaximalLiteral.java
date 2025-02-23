@@ -17,6 +17,9 @@ import java.util.Set;
 public class MaximalLiteral {
     private static final Comparator<Map<Term , Integer>> comparator = new MultisetComparator();
 
+    /**
+     * Get the maximal literals from a given clause.
+     */
     public static Set<Literal> getMaximalLiterals(@NotNull Clause clause) {
         List<Literal> literals = new ArrayList<>(clause.getAllLiterals());
 
@@ -53,6 +56,9 @@ public class MaximalLiteral {
         return isMaximal(lit, clause, false);
     }
 
+    /**
+     * Check if a literal is <b>strictly</b> maximal in a given clause
+     */
     public static boolean isStrictlyMaximal(
             @NotNull Literal lit,
             @NotNull Clause clause

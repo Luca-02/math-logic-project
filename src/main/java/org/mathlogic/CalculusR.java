@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class CalculusR extends AutomaticCalculus {
+public class CalculusR extends AutomaticCalculus {
     @Override
     protected Set<Clause> inferAllPossibleClausesFromItself(Clause given, Clause renamedGiven) {
         // Apply factorization on given clause
@@ -116,37 +116,43 @@ public abstract class CalculusR extends AutomaticCalculus {
     /**
      * Provide the list of literals of a clause for which we can apply factorization rule.
      */
-    protected abstract Set<Literal> getPossibleFactorizableLiterals(Clause clause);
+    protected Set<Literal> getPossibleFactorizableLiterals(Clause clause) {
+        return clause.getPositiveLiterals();
+    }
 
     /**
      * Provide the list of positive literals of a clause for which we can apply resolution rule.
      */
-    protected abstract Set<Literal> getPossibleSolvablePositiveLiterals(Clause clause);
+    protected Set<Literal> getPossibleSolvablePositiveLiterals(Clause clause) {
+        return clause.getPositiveLiterals();
+    }
 
     /**
      * Provide the list of negative literals of a clause for which we can apply resolution rule.
      */
-    protected abstract Set<Literal> getPossibleSolvableNegativeLiterals(Clause clause);
+    protected Set<Literal> getPossibleSolvableNegativeLiterals(Clause clause) {
+        return clause.getNegativeLiterals();
+    }
 
     /**
      * Function that returns whether the factorization rule can be applied according to
      * certain rules with respect to the type of calculus being adopted.
      */
-    protected abstract boolean factorizationCanBeApplied(
-            Clause clause,
-            Literal lit,
-            Map<String, Term> mgu
-    );
+    protected boolean factorizationCanBeApplied(Clause clause, Literal lit, Map<String, Term> mgu) {
+        return true;
+    }
 
     /**
      * Function that returns whether the resolution rule can be applied according to
      * certain rules with respect to the type of calculus being adopted.
      */
-    protected abstract boolean resolutionCanBeApplied(
+    protected boolean resolutionCanBeApplied(
             Clause clauseWithPos,
             Clause clauseWithNeg,
             Literal posToDelete,
             Literal negToDelete,
             Map<String, Term> mgu
-    );
+    ) {
+        return true;
+    }
 }
