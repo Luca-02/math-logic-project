@@ -20,8 +20,8 @@ class UnificationTest {
     void testUnification(Literal lit1, Literal lit2, Map<String, Term> expected) {
         Map<String, Term> substitutions = Unification.unify(lit1, lit2);
 
-        if (expected == null) {
-            assertNull(substitutions);
+        if (!Unification.validSubstitution(substitutions)) {
+            assertEquals(Unification.INVALID_SUBSTITUTION, substitutions);
         } else {
             assertNotNull(substitutions);
             assertEquals(expected, substitutions);
@@ -37,8 +37,8 @@ class UnificationTest {
     void testMatching(Literal lit1, Literal lit2, Map<String, Term> expected) {
         Map<String, Term> substitutions = Unification.match(lit1, lit2);
 
-        if (expected == null) {
-            assertNull(substitutions);
+        if (!Unification.validSubstitution(substitutions)) {
+            assertEquals(Unification.INVALID_SUBSTITUTION, substitutions);
         } else {
             assertNotNull(substitutions);
             assertEquals(expected, substitutions);
@@ -66,7 +66,7 @@ class UnificationTest {
         return Stream.of(
                 Arguments.of(
                         Literal.parse("P(?x)"),
-                        Literal.parse("P(a)"),
+                        Literal.parse("¬P(a)"),
                         Map.of("?x", Term.parse("a"))
                 ),
                 Arguments.of(
@@ -136,42 +136,42 @@ class UnificationTest {
                 Arguments.of(
                         Literal.parse("P(?x)"),
                         Literal.parse("Q(a)"),
-                        null // Fail, different predicates
+                        Unification.INVALID_SUBSTITUTION // Fail, different predicates
                 ),
                 Arguments.of(
                         Literal.parse("P(?x, ?y)"),
                         Literal.parse("P(?x)"),
-                        null // Fail, different literal arity
+                        Unification.INVALID_SUBSTITUTION // Fail, different literal arity
                 ),
                 Arguments.of(
                         Literal.parse("P(f(?x, ?x))"),
                         Literal.parse("P(f(a, b))"),
-                        null // Fail, no solution
+                        Unification.INVALID_SUBSTITUTION // Fail, no solution
                 ),
                 Arguments.of(
                         Literal.parse("P(f(?x))"),
                         Literal.parse("P(g(?x))"),
-                        null // Fail, different function
+                        Unification.INVALID_SUBSTITUTION // Fail, different function
                 ),
                 Arguments.of(
                         Literal.parse("P(f(?x))"),
                         Literal.parse("P(f(?x, ?y))"),
-                        null // Fail, different function
+                        Unification.INVALID_SUBSTITUTION // Fail, different function
                 ),
                 Arguments.of(
                         Literal.parse("P(?x)"),
                         Literal.parse("P(?x)"),
-                        null // Fail, empty solution
+                        Unification.INVALID_SUBSTITUTION // Fail, empty solution
                 ),
                 Arguments.of(
                         Literal.parse("P(?x, f(?x, ?y))"),
                         Literal.parse("P(?x, f(?x, ?y))"),
-                        null // Fail, same literals
+                        Unification.INVALID_SUBSTITUTION // Fail, same literals
                 ),
                 Arguments.of(
                         Literal.parse("P(?x)"),
                         Literal.parse("P(f(?x))"),
-                        null // Fail, occurs check
+                        Unification.INVALID_SUBSTITUTION // Fail, occurs check
                 )
         );
     }
@@ -180,7 +180,7 @@ class UnificationTest {
         return Stream.of(
                 Arguments.of(
                         Literal.parse("P(?x)"),
-                        Literal.parse("P(a)"),
+                        Literal.parse("¬P(a)"),
                         Map.of("?x", Term.parse("a"))
                 ),
                 Arguments.of(
@@ -228,27 +228,27 @@ class UnificationTest {
                 Arguments.of(
                         Literal.parse("P(?x, ?y)"),
                         Literal.parse("Q(a, b)"),
-                        null // Fail, different predicates
+                        Unification.INVALID_SUBSTITUTION // Fail, different predicates
                 ),
                 Arguments.of(
                         Literal.parse("P(?x, ?y)"),
                         Literal.parse("P(a, b, c)"),
-                        null // Fail, different literal arity
+                        Unification.INVALID_SUBSTITUTION // Fail, different literal arity
                 ),
                 Arguments.of(
                         Literal.parse("P(?x, f(?y))"),
                         Literal.parse("P(a, g(b))"),
-                        null // Fail, different function
+                        Unification.INVALID_SUBSTITUTION // Fail, different function
                 ),
                 Arguments.of(
                         Literal.parse("P(?x, ?y)"),
                         Literal.parse("P(?x, ?y)"),
-                        null // Fail, equals literal
+                        Unification.INVALID_SUBSTITUTION // Fail, equals literal
                 ),
                 Arguments.of(
                         Literal.parse("P(g(?y))"),
                         Literal.parse("P(a)"),
-                        null // Fail, no solution
+                        Unification.INVALID_SUBSTITUTION // Fail, no solution
                 )
         );
     }

@@ -1,12 +1,12 @@
 package org.mathlogic.utility;
 
 import org.mathlogic.comparator.MultisetComparator;
-import org.jetbrains.annotations.NotNull;
 import org.mathlogic.exception.LiteralNotFoundInClauseException;
 import org.mathlogic.structure.Clause;
 import org.mathlogic.structure.Literal;
 import org.mathlogic.structure.Term;
 
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;

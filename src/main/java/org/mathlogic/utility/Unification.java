@@ -6,12 +6,19 @@ import org.mathlogic.structure.Term;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class Unification {
+    public static final Map<String, Term> INVALID_SUBSTITUTION = Collections.emptyMap();
+
+    public static boolean validSubstitution(Map<String, Term> substitutions) {
+        return substitutions != null && !substitutions.equals(INVALID_SUBSTITUTION);
+    }
+
     /**
      * Control whether substitutions applied to two literals make them unify correctly.
      */
@@ -20,11 +27,15 @@ public class Unification {
             @NotNull Literal lit2,
             @NotNull Map<String, Term> substitutions
     ) {
+        if (!validSubstitution(substitutions)) {
+            return false;
+        }
+
         Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
         Literal subLit2 = Substitution.applySubstitution(lit2, substitutions);
 
         if (subLit1.isNegated() != subLit2.isNegated()) {
-            subLit1.negate();
+            subLit1 = subLit1.negate();
         }
 
         return Objects.equals(subLit1, subLit2);
@@ -38,10 +49,14 @@ public class Unification {
             @NotNull Literal lit2,
             @NotNull Map<String, Term> substitutions
     ) {
+        if (!validSubstitution(substitutions)) {
+            return false;
+        }
+
         Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
 
         if (subLit1.isNegated() != lit2.isNegated()) {
-            subLit1.negate();
+            subLit1 = subLit1.negate();
         }
 
         return Objects.equals(subLit1, lit2);
@@ -52,7 +67,17 @@ public class Unification {
      * otherwise returns {@code null}.
      */
     public static Map<String, Term> unify(@NotNull Literal l1, @NotNull Literal l2) {
-        return unifyOrMatch(l1, l2, true);
+        List<Equation> equations = createEquations(l1, l2);
+        return unifyOrMatch(equations, true);
+    }
+
+    /**
+     * Unify two terms. Returns a substitution map if unification succeeds,
+     * otherwise returns {@code null}.
+     */
+    public static Map<String, Term> unify(@NotNull Term t1, @NotNull Term t2) {
+        List<Equation> equations = List.of(new Equation(t1, t2));
+        return unifyOrMatch(equations, true);
     }
 
     /**
@@ -60,7 +85,8 @@ public class Unification {
      * otherwise returns {@code null}.
      */
     public static Map<String, Term> match(@NotNull Literal l1, @NotNull Literal l2) {
-        return unifyOrMatch(l1, l2, false);
+        List<Equation> equations = createEquations(l1, l2);
+        return unifyOrMatch(equations, false);
     }
 
     /**
@@ -82,17 +108,11 @@ public class Unification {
      * General method for unification and matching.
      */
     private static Map<String, Term> unifyOrMatch(
-            Literal l1,
-            Literal l2,
+            List<Equation> equations,
             boolean isUnification
     ) {
-        if (hasDifferentStructure(l1, l2)) {
-            return null;
-        }
-
-        List<Equation> equations = new ArrayList<>();
-        for (int i = 0; i < l1.getTerms().size(); i++) {
-            equations.add(new Equation(l1.getTerms().get(i), l2.getTerms().get(i)));
+        if (equations.isEmpty()) {
+            return INVALID_SUBSTITUTION;
         }
 
         boolean changed;
@@ -115,7 +135,7 @@ public class Unification {
                 // with n equation of t1 ?= u1, ..., tn ?= un
                 else if (t1.isFunction() && (!isUnification || t2.isFunction())) {
                     if (isFailing(t1, t2)) {
-                        return null;
+                        return INVALID_SUBSTITUTION;
                     }
                     equationsToDelete.add(equation);
                     for (int j = 0; j < t1.getArguments().size(); j++) {
@@ -134,7 +154,7 @@ public class Unification {
                 // x with t in every other equation of the current list
                 else if (t1.isVariable()) {
                     if (occurCheck(t1, t2)) {
-                        return null;
+                        return INVALID_SUBSTITUTION;
                     }
                     List<Equation> substitutedEquations =
                             applySubstitutionToEquations(equations, t1.getName(), t2, equation);
@@ -157,7 +177,19 @@ public class Unification {
             substitutions.put(equation.getLeft().getName(), equation.getRight());
         }
 
-        return substitutions.isEmpty() ? null : substitutions;
+        return substitutions.isEmpty() ? INVALID_SUBSTITUTION : substitutions;
+    }
+
+    private static List<Equation> createEquations(Literal l1, Literal l2) {
+        if (hasDifferentStructure(l1, l2)) {
+            return Collections.emptyList();
+        }
+
+        List<Equation> equations = new ArrayList<>();
+        for (int i = 0; i < l1.getTerms().size(); i++) {
+            equations.add(new Equation(l1.getTerms().get(i), l2.getTerms().get(i)));
+        }
+        return equations;
     }
 
     /**
@@ -197,10 +229,6 @@ public class Unification {
             updatedEquations.add(new Equation(newFirst, newSecond));
         }
 
-        if (modified) {
-            return updatedEquations;
-        } else {
-            return null;
-        }
+        return modified ? updatedEquations : null;
     }
 }

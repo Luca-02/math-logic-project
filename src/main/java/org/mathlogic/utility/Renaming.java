@@ -22,7 +22,7 @@ public class Renaming {
     ) {
         Map<String, Term> substitutions = getSubstitutionForDisjointVariables(original, toRename);
 
-        if (substitutions != null) {
+        if (substitutions != Unification.INVALID_SUBSTITUTION) {
             toRename.replace(Substitution.applySubstitution(toRename, substitutions));
         }
     }
@@ -31,9 +31,9 @@ public class Renaming {
      * Create a substitution map for two clause so that, if applied,
      * they have disjoint variables between them.
      */
-    public static Map<String, Term> getSubstitutionForDisjointVariables(
-            @NotNull Clause original,
-            @NotNull Clause toRename
+    private static Map<String, Term> getSubstitutionForDisjointVariables(
+            Clause original,
+            Clause toRename
     ) {
         Set<String> originalVariables = new HashSet<>(original.collectSymbols());
         Set<String> toRenameVariables = new HashSet<>(toRename.collectSymbols());
@@ -48,7 +48,6 @@ public class Renaming {
                 }
             }
         }
-
-        return substitutions.isEmpty() ? null : substitutions;
+        return substitutions.isEmpty() ? Unification.INVALID_SUBSTITUTION : substitutions;
     }
 }

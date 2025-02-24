@@ -1,7 +1,6 @@
 package org.mathlogic.structure;
 
-import org.jetbrains.annotations.NotNull;
-
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**

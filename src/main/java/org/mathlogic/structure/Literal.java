@@ -1,8 +1,8 @@
 package org.mathlogic.structure;
 
-import org.jetbrains.annotations.NotNull;
 import org.mathlogic.utility.Parsing;
 
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

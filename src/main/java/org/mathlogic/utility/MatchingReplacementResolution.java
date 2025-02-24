@@ -1,10 +1,10 @@
 package org.mathlogic.utility;
 
-import org.jetbrains.annotations.NotNull;
 import org.mathlogic.structure.Clause;
 import org.mathlogic.structure.Literal;
 import org.mathlogic.structure.Term;
 
+import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 public class MatchingReplacementResolution {
@@ -26,7 +26,8 @@ public class MatchingReplacementResolution {
             for (Literal lit2 : target.getNegativeLiterals()) {
                 Map<String, Term> sigma = Unification.match(lit1, lit2);
 
-                if (sigma != null && checkMatchingReplacementResolution(reference, target, lit1, lit2, sigma)) {
+                if (Unification.validSubstitution(sigma) &&
+                        checkMatchingReplacementResolution(reference, target, lit1, lit2, sigma)) {
                     Clause updated = target.copy();
                     updated.getNegativeLiterals().remove(lit2);
                     return updated;

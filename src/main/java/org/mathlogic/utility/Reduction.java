@@ -1,8 +1,8 @@
 package org.mathlogic.utility;
 
-import org.jetbrains.annotations.NotNull;
 import org.mathlogic.structure.Clause;
 
+import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 

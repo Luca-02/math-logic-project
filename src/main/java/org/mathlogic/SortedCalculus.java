@@ -6,15 +6,11 @@ import org.mathlogic.structure.Term;
 import org.mathlogic.utility.MaximalLiteral;
 import org.mathlogic.utility.Substitution;
 
+import javax.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.Set;
 
 public class SortedCalculus extends CalculusR {
-    @Override
-    protected Set<Literal> getPossibleFactorizableLiterals(Clause clause) {
-        return clause.getMaximalPositiveLiterals();
-    }
-
     @Override
     protected Set<Literal> getPossibleSolvablePositiveLiterals(Clause clause) {
         return clause.getMaximalPositiveLiterals();
@@ -26,19 +22,17 @@ public class SortedCalculus extends CalculusR {
     }
 
     @Override
-    public boolean factorizationCanBeApplied(Clause clause, Literal lit, Map<String, Term> mgu) {
-        Clause subClause = Substitution.applySubstitution(clause, mgu);
-        Literal subLit = Substitution.applySubstitution(lit, mgu);
-        return MaximalLiteral.isMaximal(subLit, subClause);
+    protected Set<Literal> getPossibleFactorizableLiterals(Clause clause) {
+        return clause.getMaximalPositiveLiterals();
     }
 
     @Override
-    public boolean resolutionCanBeApplied(
+    protected boolean resolutionCanBeApplied(
             Clause clauseWithPos,
             Clause clauseWithNeg,
             Literal posToDelete,
             Literal negToDelete,
-            Map<String, Term> mgu
+            @NotNull Map<String, Term> mgu
     ) {
         Clause subClauseWithPos = Substitution.applySubstitution(clauseWithPos, mgu);
         Literal subPosToDelete = Substitution.applySubstitution(posToDelete, mgu);
@@ -48,5 +42,16 @@ public class SortedCalculus extends CalculusR {
 
         return MaximalLiteral.isStrictlyMaximal(subPosToDelete, subClauseWithPos) &&
                 MaximalLiteral.isMaximal(subNegToDelete, subClauseWithNeg);
+    }
+
+    @Override
+    protected boolean rightFactorizationCanBeApplied(
+            Clause clause,
+            Literal lit,
+            @NotNull Map<String, Term> mgu
+    ) {
+        Clause subClause = Substitution.applySubstitution(clause, mgu);
+        Literal subLit = Substitution.applySubstitution(lit, mgu);
+        return MaximalLiteral.isMaximal(subLit, subClause);
     }
 }

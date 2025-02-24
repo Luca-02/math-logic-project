@@ -29,17 +29,17 @@ class CalculusRTest {
     }
 
     @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
-    @MethodSource("provideParametersForFactorizeClause")
-    void testFactorizeClause(Clause clause, Literal lit1, Literal lit2, Clause expected) {
-        Clause result = baseResolver.factorizeClause(clause, lit1, lit2);
+    @MethodSource("provideParametersForApplyRightFactorize")
+    void testApplyRightFactorize(Clause clause, Literal lit1, Literal lit2, Clause expected) {
+        Clause result = baseResolver.applyRightFactorize(clause, lit1, lit2);
 
         assertEquals(expected, result);
     }
 
     @ParameterizedTest(name = "{index} -> c1={0}, c2={1}, a={2}, b={3}, expected={4}")
-    @MethodSource("provideParametersForResolveClauses")
-    void testResolveClauses(Clause c1, Clause c2, Literal a, Literal b, Clause expected) {
-        Clause result = baseResolver.resolveClauses(c1, c2, a, b);
+    @MethodSource("provideParametersForApplyResolution")
+    void testApplyResolution(Clause c1, Clause c2, Literal a, Literal b, Clause expected) {
+        Clause result = baseResolver.applyResolution(c1, c2, a, b);
 
         assertEquals(expected, result);
     }
@@ -54,7 +54,7 @@ class CalculusRTest {
         }
     }
 
-    Stream<Arguments> provideParametersForFactorizeClause() {
+    Stream<Arguments> provideParametersForApplyRightFactorize() {
         return Stream.of(
                 Arguments.of(
                         Clause.parse("=> R(?x, f(?y)), R(?y, f(?x))"),
@@ -71,7 +71,7 @@ class CalculusRTest {
         );
     }
 
-    Stream<Arguments> provideParametersForResolveClauses() {
+    Stream<Arguments> provideParametersForApplyResolution() {
         return Stream.of(
                 Arguments.of(
                         Clause.parse("R(?x, s(?x)) => Q(f(?x))"),

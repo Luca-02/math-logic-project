@@ -17,7 +17,8 @@ public class Subsumption {
             for (Literal lit2 : clause2.getAllLiterals()) {
                 Map<String, Term> sigma = Unification.match(lit1, lit2);
 
-                if (sigma != null && checkSubsumption(clause1, clause2, sigma)) {
+                if (Unification.validSubstitution(sigma) &&
+                        checkSubsumption(clause1, clause2, sigma)) {
                     return true;
                 }
             }
@@ -32,7 +33,8 @@ public class Subsumption {
     private static boolean checkSubsumption(
             Clause clause1,
             Clause clause2,
-            @NotNull Map<String, Term> substitution) {
+            @NotNull Map<String, Term> substitution
+    ) {
         Clause subClause1 = Substitution.applySubstitution(clause1, substitution);
         return clause2.getNegativeLiterals().containsAll(subClause1.getNegativeLiterals()) &&
                 clause2.getPositiveLiterals().containsAll(subClause1.getPositiveLiterals());
