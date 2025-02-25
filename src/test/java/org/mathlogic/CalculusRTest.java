@@ -28,18 +28,18 @@ class CalculusRTest {
         );
     }
 
-    @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
-    @MethodSource("provideParametersForApplyRightFactorize")
-    void testApplyRightFactorize(Clause clause, Literal lit1, Literal lit2, Clause expected) {
-        Clause result = baseResolver.applyRightFactorize(clause, lit1, lit2);
-
-        assertEquals(expected, result);
-    }
-
     @ParameterizedTest(name = "{index} -> c1={0}, c2={1}, a={2}, b={3}, expected={4}")
     @MethodSource("provideParametersForApplyResolution")
     void testApplyResolution(Clause c1, Clause c2, Literal a, Literal b, Clause expected) {
         Clause result = baseResolver.applyResolution(c1, c2, a, b);
+
+        assertEquals(expected, result);
+    }
+
+    @ParameterizedTest(name = "{index} -> clause={0}, lit1={1}, lit2={2}, expected={3}")
+    @MethodSource("provideParametersForApplyRightFactorize")
+    void testApplyRightFactorize(Clause clause, Literal lit1, Literal lit2, Clause expected) {
+        Clause result = baseResolver.applyRightFactorize(clause, lit1, lit2);
 
         assertEquals(expected, result);
     }
@@ -52,23 +52,6 @@ class CalculusRTest {
 
             assertEquals(expected, result);
         }
-    }
-
-    Stream<Arguments> provideParametersForApplyRightFactorize() {
-        return Stream.of(
-                Arguments.of(
-                        Clause.parse("=> R(?x, f(?y)), R(?y, f(?x))"),
-                        Literal.parse("R(?y, f(?x))"),
-                        Literal.parse("R(?x, f(?y))"),
-                        Clause.parse("=> R(?x, f(?x))")
-                ),
-                Arguments.of(
-                        Clause.parse("Q(f(?x, g(?y)), ?h) => P(f(?x, g(?y)), h(?z)), P(f(a, g(b)), h(c))"),
-                        Literal.parse("P(f(?x, g(?y)), h(?z))"),
-                        Literal.parse("P(f(a, g(b)), h(c))"),
-                        Clause.parse("Q(f(a, g(b)), ?h) => P(f(a, g(b)), h(c))")
-                )
-        );
     }
 
     Stream<Arguments> provideParametersForApplyResolution() {
@@ -104,6 +87,23 @@ class CalculusRTest {
         );
     }
 
+    Stream<Arguments> provideParametersForApplyRightFactorize() {
+        return Stream.of(
+                Arguments.of(
+                        Clause.parse("=> R(?x, f(?y)), R(?y, f(?x))"),
+                        Literal.parse("R(?y, f(?x))"),
+                        Literal.parse("R(?x, f(?y))"),
+                        Clause.parse("=> R(?x, f(?x))")
+                ),
+                Arguments.of(
+                        Clause.parse("Q(f(?x, g(?y)), ?h) => P(f(?x, g(?y)), h(?z)), P(f(a, g(b)), h(c))"),
+                        Literal.parse("P(f(?x, g(?y)), h(?z))"),
+                        Literal.parse("P(f(a, g(b)), h(c))"),
+                        Clause.parse("Q(f(a, g(b)), ?h) => P(f(a, g(b)), h(c))")
+                )
+        );
+    }
+
     Stream<Arguments> provideParametersForRefute() {
         return Stream.of(
                 Arguments.of(
@@ -112,13 +112,6 @@ class CalculusRTest {
                                 Clause.parse("=>")
                         ),
                         true
-                ),
-                Arguments.of(
-                        Set.of(
-                                Clause.parse("=> P(f(a))"),
-                                Clause.parse("P(f(a)) =>")
-                        ),
-                        false
                 ),
                 Arguments.of(
                         Set.of(
@@ -147,6 +140,13 @@ class CalculusRTest {
                         Set.of(
                                 Clause.parse("=> R(?x, f(?y)), R(?y, f(?x))"),
                                 Clause.parse("R(?x, f(?y)), R(?y, f(?x)) =>")
+                        ),
+                        true
+                ),
+                Arguments.of(
+                        Set.of(
+                                Clause.parse("=> P(f(a))"),
+                                Clause.parse("P(f(a)) =>")
                         ),
                         true
                 ),

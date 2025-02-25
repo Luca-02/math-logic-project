@@ -5,19 +5,10 @@ import org.mathlogic.structure.Literal;
 import org.mathlogic.structure.Term;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Unification {
-    public static final Map<String, Term> INVALID_SUBSTITUTION = Collections.emptyMap();
-
-    public static boolean validSubstitution(Map<String, Term> substitutions) {
-        return substitutions != null && !substitutions.equals(INVALID_SUBSTITUTION);
-    }
+    public static final Map<String, Term> INVALID_SUBSTITUTION = null;
 
     /**
      * Control whether substitutions applied to two literals make them unify correctly.
@@ -27,10 +18,6 @@ public class Unification {
             @NotNull Literal lit2,
             @NotNull Map<String, Term> substitutions
     ) {
-        if (!validSubstitution(substitutions)) {
-            return false;
-        }
-
         Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
         Literal subLit2 = Substitution.applySubstitution(lit2, substitutions);
 
@@ -49,10 +36,6 @@ public class Unification {
             @NotNull Literal lit2,
             @NotNull Map<String, Term> substitutions
     ) {
-        if (!validSubstitution(substitutions)) {
-            return false;
-        }
-
         Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
 
         if (subLit1.isNegated() != lit2.isNegated()) {
@@ -76,7 +59,8 @@ public class Unification {
      * otherwise returns {@code null}.
      */
     public static Map<String, Term> unify(@NotNull Term t1, @NotNull Term t2) {
-        List<Equation> equations = List.of(new Equation(t1, t2));
+        List<Equation> equations = new ArrayList<>();
+        equations.add(new Equation(t1, t2));
         return unifyOrMatch(equations, true);
     }
 
@@ -177,7 +161,15 @@ public class Unification {
             substitutions.put(equation.getLeft().getName(), equation.getRight());
         }
 
-        return substitutions.isEmpty() ? INVALID_SUBSTITUTION : substitutions;
+        return substitutions;
+    }
+
+    /**
+     * Checks whether two literals have the same predicate and the same number of terms.
+     */
+    private static boolean hasDifferentStructure(Literal l1, Literal l2) {
+        return !l1.getPredicate().equals(l2.getPredicate()) ||
+                l1.getTerms().size() != l2.getTerms().size();
     }
 
     private static List<Equation> createEquations(Literal l1, Literal l2) {
@@ -190,14 +182,6 @@ public class Unification {
             equations.add(new Equation(l1.getTerms().get(i), l2.getTerms().get(i)));
         }
         return equations;
-    }
-
-    /**
-     * Checks whether two literals have the same predicate and the same number of terms.
-     */
-    private static boolean hasDifferentStructure(Literal l1, Literal l2) {
-        return !l1.getPredicate().equals(l2.getPredicate()) ||
-                l1.getTerms().size() != l2.getTerms().size();
     }
 
     /**

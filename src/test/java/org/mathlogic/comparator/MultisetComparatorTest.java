@@ -31,10 +31,10 @@ class MultisetComparatorTest {
         assertEquals(expected * -1, inverse);
     }
 
-    @ParameterizedTest(name = "{index} -> lit1={0}, lit2={1}, expected={2}")
+    @ParameterizedTest(name = "{index} -> m={0}, n={1}, expected={2}")
     @MethodSource("provideParametersForCanTransformIntegerMultisets")
-    void testCanTransformIntegerMultisets(Map<Integer, Integer> m1, Map<Integer, Integer> m2, boolean expected) {
-        boolean result = comparator.canTransform(m1, m2);
+    void testCanTransformIntegerMultisets(Map<Integer, Integer> m, Map<Integer, Integer> n, boolean expected) {
+        boolean result = comparator.canTransform(m, n);
 
         assertEquals(expected, result);
     }
@@ -64,6 +64,11 @@ class MultisetComparatorTest {
                 Arguments.of(
                         Literal.parse("=(e(?x), d(?x))"),
                         Literal.parse("=(e(?x), d(?x))"),
+                        0
+                ),
+                Arguments.of(
+                        Literal.parse("=(?x, f(?y))"),
+                        Literal.parse("=(?y, f(?x))"),
                         0
                 )
         );

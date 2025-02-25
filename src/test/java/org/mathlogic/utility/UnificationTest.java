@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -20,9 +21,7 @@ class UnificationTest {
     void testUnification(Literal lit1, Literal lit2, Map<String, Term> expected) {
         Map<String, Term> substitutions = Unification.unify(lit1, lit2);
 
-        if (!Unification.validSubstitution(substitutions)) {
-            assertEquals(Unification.INVALID_SUBSTITUTION, substitutions);
-        } else {
+        if (substitutions != Unification.INVALID_SUBSTITUTION) {
             assertNotNull(substitutions);
             assertEquals(expected, substitutions);
 
@@ -37,9 +36,7 @@ class UnificationTest {
     void testMatching(Literal lit1, Literal lit2, Map<String, Term> expected) {
         Map<String, Term> substitutions = Unification.match(lit1, lit2);
 
-        if (!Unification.validSubstitution(substitutions)) {
-            assertEquals(Unification.INVALID_SUBSTITUTION, substitutions);
-        } else {
+        if (substitutions != Unification.INVALID_SUBSTITUTION) {
             assertNotNull(substitutions);
             assertEquals(expected, substitutions);
 
@@ -135,6 +132,16 @@ class UnificationTest {
                 ),
                 Arguments.of(
                         Literal.parse("P(?x)"),
+                        Literal.parse("P(?x)"),
+                        Collections.emptyMap() // Empty solution
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x, f(?x, ?y))"),
+                        Literal.parse("P(?x, f(?x, ?y))"),
+                        Collections.emptyMap() // Same literals
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x)"),
                         Literal.parse("Q(a)"),
                         Unification.INVALID_SUBSTITUTION // Fail, different predicates
                 ),
@@ -157,16 +164,6 @@ class UnificationTest {
                         Literal.parse("P(f(?x))"),
                         Literal.parse("P(f(?x, ?y))"),
                         Unification.INVALID_SUBSTITUTION // Fail, different function
-                ),
-                Arguments.of(
-                        Literal.parse("P(?x)"),
-                        Literal.parse("P(?x)"),
-                        Unification.INVALID_SUBSTITUTION // Fail, empty solution
-                ),
-                Arguments.of(
-                        Literal.parse("P(?x, f(?x, ?y))"),
-                        Literal.parse("P(?x, f(?x, ?y))"),
-                        Unification.INVALID_SUBSTITUTION // Fail, same literals
                 ),
                 Arguments.of(
                         Literal.parse("P(?x)"),
@@ -227,6 +224,11 @@ class UnificationTest {
                 ),
                 Arguments.of(
                         Literal.parse("P(?x, ?y)"),
+                        Literal.parse("P(?x, ?y)"),
+                        Collections.emptyMap() // Same literal
+                ),
+                Arguments.of(
+                        Literal.parse("P(?x, ?y)"),
                         Literal.parse("Q(a, b)"),
                         Unification.INVALID_SUBSTITUTION // Fail, different predicates
                 ),
@@ -239,11 +241,6 @@ class UnificationTest {
                         Literal.parse("P(?x, f(?y))"),
                         Literal.parse("P(a, g(b))"),
                         Unification.INVALID_SUBSTITUTION // Fail, different function
-                ),
-                Arguments.of(
-                        Literal.parse("P(?x, ?y)"),
-                        Literal.parse("P(?x, ?y)"),
-                        Unification.INVALID_SUBSTITUTION // Fail, equals literal
                 ),
                 Arguments.of(
                         Literal.parse("P(g(?y))"),

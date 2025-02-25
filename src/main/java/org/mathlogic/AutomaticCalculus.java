@@ -86,11 +86,11 @@ public abstract class AutomaticCalculus {
      * Apply all possible inference between given clause, itself and the clauses of {@code Wo}.
      */
     private Set<Clause> inferAllPossibleClauses(Clause given) {
-        Clause cloneGiven = given.copy();
+        Clause givenCopy = given.copy();
         // Apply renomination to make sure that the tow clause have disjoint variables
-        Renaming.renameClausesToDisjointVariable(given, cloneGiven);
+        Renaming.renameClausesToDisjointVariable(given, givenCopy);
 
-        Set<Clause> newClauses = new HashSet<>(inferAllPossibleClausesFromItself(given, cloneGiven));
+        Set<Clause> newClauses = new HashSet<>(inferAllPossibleClausesFromItself(given, givenCopy));
 
         for (Clause clauseWo : worked) {
             // Apply renomination to make sure that the tow clause have disjoint variables

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.mathlogic.Constant.IDENTITY_SYMBOL;
 import static org.mathlogic.Constant.NOT_SYMBOL;
 
 /**
@@ -43,30 +44,43 @@ public class Literal implements LogicalStructure<Literal> {
     }
 
     public boolean isIdentity() {
-        return predicate.equals("=") && terms.size() == 2;
+        return predicate.equals(IDENTITY_SYMBOL) && terms.size() == 2;
+    }
+
+    public boolean isTautology() {
+        return isIdentity() && terms.get(0).equals(terms.get(1));
     }
 
     /**
-     * Get the multiset view of the literals.
+     * Returns a multiset view of the literals with their multiplicity.
+     * If the literal is negated, its multiplicity is doubled.
      */
     public Map<Term, Integer> getMultisetView() {
         Map<Term, Integer> multiset = new HashMap<>();
+        int multiplicity = isNegated() ? 2 : 1;
 
         if (isIdentity()) {
-            multiset.put(terms.get(0), isNegated() ? 2 : 1);
-            multiset.put(terms.get(1), isNegated() ? 2 : 1);
+            Term left = terms.get(0);
+            Term right = terms.get(1);
+
+            if (left.equals(right)) {
+                multiset.put(left, multiplicity * 2);
+            } else {
+                multiset.put(left, multiplicity);
+                multiset.put(right, multiplicity);
+            }
         } else {
-            multiset.put(new Term(predicate, terms), isNegated() ? 2 : 1);
-            multiset.put(Term.MINIMAL, isNegated() ? 2 : 1);
+            multiset.put(new Term(predicate, terms), multiplicity);
+            multiset.put(Term.MINIMAL, multiplicity);
         }
 
         return multiset;
     }
 
     public Literal negate() {
-        Literal clone = copy();
-        clone.isNegated = !isNegated;
-        return clone;
+        Literal copy = copy();
+        copy.isNegated = !isNegated;
+        return copy;
     }
 
     @Override
@@ -81,11 +95,11 @@ public class Literal implements LogicalStructure<Literal> {
 
     @Override
     public Literal copy() {
-        List<Term> clonedTerms = new ArrayList<>();
+        List<Term> copiedTerms = new ArrayList<>();
         for (Term term : terms) {
-            clonedTerms.add(term.copy());
+            copiedTerms.add(term.copy());
         }
-        return new Literal(isNegated, predicate, clonedTerms);
+        return new Literal(isNegated, predicate, copiedTerms);
     }
 
     @Override

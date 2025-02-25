@@ -15,7 +15,7 @@ import static org.mathlogic.Constant.VARIABLE_IDENTIFIER;
  */
 public class Term implements LogicalStructure<Term> {
     /**
-     * Minimum term in the ordering of terms.
+     * Minimum term in the ordering of terms, is a constant.
      */
     public static final Term MINIMAL = new Term("true");
 
@@ -85,11 +85,11 @@ public class Term implements LogicalStructure<Term> {
 
     @Override
     public Term copy() {
-        List<Term> clonedArguments = new ArrayList<>();
+        List<Term> copiedArguments = new ArrayList<>();
         for (Term arg : arguments) {
-            clonedArguments.add(arg.copy());
+            copiedArguments.add(arg.copy());
         }
-        return new Term(name, clonedArguments);
+        return new Term(name, copiedArguments);
     }
 
     @Override

@@ -36,10 +36,8 @@ public class SortedCalculus extends CalculusR {
     ) {
         Clause subClauseWithPos = Substitution.applySubstitution(clauseWithPos, mgu);
         Literal subPosToDelete = Substitution.applySubstitution(posToDelete, mgu);
-
         Clause subClauseWithNeg = Substitution.applySubstitution(clauseWithNeg, mgu);
         Literal subNegToDelete = Substitution.applySubstitution(negToDelete, mgu);
-
         return MaximalLiteral.isStrictlyMaximal(subPosToDelete, subClauseWithPos) &&
                 MaximalLiteral.isMaximal(subNegToDelete, subClauseWithNeg);
     }

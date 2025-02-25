@@ -39,44 +39,43 @@ public class CalculusR extends AutomaticCalculus {
     }
 
     /**
-     * All possible resolution of two clauses, possibly renamed to have disjoint variables.
+     * All possible resolution of two clauses.
      */
     private Set<Clause> resolution(Clause clauseWithPos, Clause clauseWithNeg) {
-        Set<Clause> resolutions = new HashSet<>();
+        Set<Clause> newClauses = new HashSet<>();
         for (Literal pos : getPossibleSolvablePositiveLiterals(clauseWithPos)) {
             for (Literal neg : getPossibleSolvableNegativeLiterals(clauseWithNeg)) {
                 Clause resolvent = applyResolution(clauseWithPos, clauseWithNeg, pos, neg);
-
                 if (resolvent != null) {
-                    resolutions.add(resolvent);
+                    newClauses.add(resolvent);
                 }
             }
         }
-        return resolutions;
+        return newClauses;
     }
 
     /**
      * All possible right factorization of a clause.
      */
     private Set<Clause> rightFactorization(Clause clause) {
-        Set<Clause> factorizations = new HashSet<>();
+        Set<Clause> newClauses = new HashSet<>();
         List<Literal> posList = new ArrayList<>(getPossibleFactorizableLiterals(clause));
-
         // Avoid to check the same pair of literals two times
         for (int i = 0; i < posList.size(); i++) {
             for (int j = i + 1; j < posList.size(); j++) {
-                Clause factorized = applyRightFactorize(clause, posList.get(i), posList.get(j));
+                if (posList.get(i).equals(posList.get(j))) continue;
 
+                Clause factorized = applyRightFactorize(clause, posList.get(i), posList.get(j));
                 if (factorized != null) {
-                    factorizations.add(factorized);
+                    newClauses.add(factorized);
                 }
             }
         }
-        return factorizations;
+        return newClauses;
     }
 
     /**
-     * Resolution of two clauses with the given literals for which we have done the unification
+     * Resolution of two clauses with the given literals for which we need to perform the unification.
      */
     public Clause applyResolution(
             Clause clauseWithPos,
@@ -85,40 +84,37 @@ public class CalculusR extends AutomaticCalculus {
             Literal negToDelete
     ) {
         Map<String, Term> mgu = Unification.unify(posToDelete, negToDelete);
-
-        if (Unification.validSubstitution(mgu) &&
-                resolutionCanBeApplied(clauseWithPos, clauseWithNeg, posToDelete, negToDelete, mgu)) {
-            Clause clauseWithPosClone = clauseWithPos.copy();
-            Clause clauseWithNegClone = clauseWithNeg.copy();
-            clauseWithPosClone.getPositiveLiterals().remove(posToDelete);
-            clauseWithNegClone.getNegativeLiterals().remove(negToDelete);
-
-            Set<Literal> mergedLiterals = new HashSet<>();
-            mergedLiterals.addAll(clauseWithPosClone.getNegativeLiterals());
-            mergedLiterals.addAll(clauseWithNegClone.getNegativeLiterals());
-            mergedLiterals.addAll(clauseWithPosClone.getPositiveLiterals());
-            mergedLiterals.addAll(clauseWithNegClone.getPositiveLiterals());
-
-            Clause resolvent = new Clause(mergedLiterals);
-            return Substitution.applySubstitution(resolvent, mgu);
+        if (mgu == Unification.INVALID_SUBSTITUTION ||
+                !resolutionCanBeApplied(clauseWithPos, clauseWithNeg, posToDelete, negToDelete, mgu)) {
+            return null;
         }
 
-        return null;
+        Clause clauseWithPosCopy = clauseWithPos.copy();
+        Clause clauseWithNegCopy = clauseWithNeg.copy();
+        clauseWithPosCopy.removeLiteral(posToDelete);
+        clauseWithNegCopy.removeLiteral(negToDelete);
+
+        Set<Literal> mergedLiterals = new HashSet<>();
+        mergedLiterals.addAll(clauseWithPosCopy.getAllLiterals());
+        mergedLiterals.addAll(clauseWithNegCopy.getAllLiterals());
+
+        Clause resolvent = new Clause(mergedLiterals);
+        return Substitution.applySubstitution(resolvent, mgu);
     }
 
     /**
-     * Right factorization of a clause with the given literals for which we have done the unification.
+     * Right factorization of a clause with the given literals for which we need to perform the unification.
      */
     public Clause applyRightFactorize(Clause clause, Literal lit1, Literal lit2) {
         Map<String, Term> mgu = Unification.unify(lit1, lit2);
-
-        if (Unification.validSubstitution(mgu) &&
-                rightFactorizationCanBeApplied(clause, lit1, mgu)) {
-            // By applying the substitution on the clause, it will automatically merge
-            // the literals A and B on which the unification has been done through the mgu
-            return Substitution.applySubstitution(clause, mgu);
+        if (mgu == Unification.INVALID_SUBSTITUTION ||
+                !rightFactorizationCanBeApplied(clause, lit1, mgu)) {
+            return null;
         }
-        return null;
+
+        // By applying the substitution on the clause, it will automatically merge
+        // the literals A and B on which the unification has been done through the mgu
+        return Substitution.applySubstitution(clause, mgu);
     }
 
     /**

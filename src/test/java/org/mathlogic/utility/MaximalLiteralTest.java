@@ -24,7 +24,7 @@ class MaximalLiteralTest {
         assertEquals(expected, result);
     }
 
-    @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
+    @ParameterizedTest(name = "{index} -> lit={0}, clauses={1}, strictlyMaximal={2}, expected={3}")
     @MethodSource("provideParametersForIsMaximal")
     void testIsMaximal(Literal lit, Clause clause, boolean strictlyMaximal, boolean expected) {
         boolean result;
@@ -60,6 +60,10 @@ class MaximalLiteralTest {
                 Arguments.of(
                         Clause.parse("b(?x), =(d(?x), c(?x)) => =(d(?y), c(a))"),
                         Set.of(Literal.parse("¬=(d(?x), c(?x))"), Literal.parse("=(d(?y), c(a))"))
+                ),
+                Arguments.of(
+                        Clause.parse("=> =(?x, f(?y)), =(?y, f(?x))"),
+                        Set.of(Literal.parse("=(?x, f(?y))"), Literal.parse("=(?y, f(?x))"))
                 )
         );
     }

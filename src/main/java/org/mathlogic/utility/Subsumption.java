@@ -17,7 +17,7 @@ public class Subsumption {
             for (Literal lit2 : clause2.getAllLiterals()) {
                 Map<String, Term> sigma = Unification.match(lit1, lit2);
 
-                if (Unification.validSubstitution(sigma) &&
+                if (sigma != Unification.INVALID_SUBSTITUTION &&
                         checkSubsumption(clause1, clause2, sigma)) {
                     return true;
                 }

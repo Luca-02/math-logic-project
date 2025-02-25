@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RenamingTest {
-    @ParameterizedTest(name = "{index} -> original={0}, toRename={1}, substitutions={2}")
+    @ParameterizedTest(name = "{index} -> original={0}, toRename={1}, expected={2}")
     @MethodSource("provideParametersForRenameClausesToDisjointVariable")
     void testRenameClausesToDisjointVariable(Clause original, Clause toRename, Clause expected) {
         Renaming.renameClausesToDisjointVariable(original, toRename);

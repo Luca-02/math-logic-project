@@ -50,10 +50,7 @@ public class Substitution {
             @NotNull Map<String, Term> substitutions
     ) {
         Set<Literal> literals = new HashSet<>();
-        for (Literal lit : clause.getNegativeLiterals()) {
-            literals.add(applySubstitution(lit, substitutions));
-        }
-        for (Literal lit : clause.getPositiveLiterals()) {
+        for (Literal lit : clause.getAllLiterals()) {
             literals.add(applySubstitution(lit, substitutions));
         }
         return new Clause(literals);

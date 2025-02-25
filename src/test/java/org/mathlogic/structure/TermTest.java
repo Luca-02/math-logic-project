@@ -22,7 +22,7 @@ class TermTest {
         assertEquals(term1, term2);
     }
 
-    @ParameterizedTest(name = "{index} -> termStr={0}, expected={1}, isFunction={2}")
+    @ParameterizedTest(name = "{index} -> termStr={0}, expected={1}, isFunction={2}, symbolNumber={3}")
     @MethodSource("provideParametersForParsing")
     void testParsing(String termStr, Term expected, boolean isFunction, int symbolNumber) {
         Term term = Term.parse(termStr);
@@ -68,13 +68,13 @@ class TermTest {
     void testCopy() {
         String termStr = "f(g(?x), a)";
         Term term = Term.parse(termStr);
-        Term clone = term.copy();
+        Term copy = term.copy();
 
-        assertEquals(term, clone);
-        assertNotSame(term, clone);
-        assertNotSame(term.getArguments(), clone.getArguments());
+        assertEquals(term, copy);
+        assertNotSame(term, copy);
+        assertNotSame(term.getArguments(), copy.getArguments());
         for (int i = 0; i < term.getArguments().size(); i++) {
-            assertNotSame(term.getArguments().get(i), clone.getArguments().get(i));
+            assertNotSame(term.getArguments().get(i), copy.getArguments().get(i));
         }
     }
 

@@ -23,7 +23,7 @@ public class Reduction {
             if (toRemove.contains(ref)) continue;
 
             for (Clause target : clauses) {
-                if (toRemove.contains(target)) continue;
+                if (ref.equals(target) || toRemove.contains(target)) continue;
 
                 if (Subsumption.isSubsumed(ref, target)) {
                     toRemove.add(target);
@@ -43,7 +43,6 @@ public class Reduction {
         for (Clause ref : reference) {
             for (Clause t : target) {
                 Clause replacer = MatchingReplacementResolution.apply(ref, t);
-
                 if (replacer != null) {
                     t.replace(replacer);
                 }

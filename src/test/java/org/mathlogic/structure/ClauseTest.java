@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mathlogic.exception.ParsingEmptyLogicalStructureException;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -48,9 +49,11 @@ class ClauseTest {
     void testTautology() {
         Clause clause1 = Clause.parse(String.format("%s => %s", litStr1, litStr2));
         Clause clause2 = Clause.parse(String.format("%s => %s", litStr2, litStr2));
+        Clause clause3 = Clause.parse("=(a, a) =>");
 
         assertFalse(clause1.isTautology());
         assertTrue(clause2.isTautology());
+        assertTrue(clause3.isTautology());
     }
 
     @Test
@@ -75,21 +78,21 @@ class ClauseTest {
     @Test
     void testCopy() {
         Clause clause = Clause.parse(String.format("%s => %s, %s", litStr1, litStr2, litStr3));
-        Clause clone = clause.copy();
+        Clause copy = clause.copy();
 
-        assertEquals(clause, clone);
-        assertNotSame(clause, clone);
+        assertEquals(clause, copy);
+        assertNotSame(clause, copy);
 
         List<Literal> positive = clause.getPositiveLiterals().stream().toList();
-        List<Literal> positiveClone = clone.getPositiveLiterals().stream().toList();
-        assertNotSame(clause.getPositiveLiterals(), clone.getPositiveLiterals());
+        List<Literal> positiveClone = copy.getPositiveLiterals().stream().toList();
+        assertNotSame(clause.getPositiveLiterals(), copy.getPositiveLiterals());
         for (int i = 0; i < positive.size(); i++) {
             assertNotSame(positive.get(i), positiveClone.get(i));
         }
 
-        assertNotSame(clause.getNegativeLiterals(), clone.getNegativeLiterals());
+        assertNotSame(clause.getNegativeLiterals(), copy.getNegativeLiterals());
         List<Literal> negative = clause.getNegativeLiterals().stream().toList();
-        List<Literal> negativeClone = clone.getNegativeLiterals().stream().toList();
+        List<Literal> negativeClone = copy.getNegativeLiterals().stream().toList();
         for (int i = 0; i < negative.size(); i++) {
             assertNotSame(negative.get(i), negativeClone.get(i));
         }

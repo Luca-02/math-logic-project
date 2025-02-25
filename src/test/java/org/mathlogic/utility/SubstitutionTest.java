@@ -17,15 +17,15 @@ import static org.junit.jupiter.api.Assertions.*;
 class SubstitutionTest {
     @ParameterizedTest(name = "{index} -> term={0}, expected={1}, substitution={2}")
     @MethodSource("provideParametersForApplySubstitutionToTerm")
-    void testApplySubstitutionToTerm(Term input, Term expected, Map<String, Term> substitution) {
-        Term result = Substitution.applySubstitution(input, substitution);
+    void testApplySubstitutionToTerm(Term term, Term expected, Map<String, Term> substitution) {
+        Term result = Substitution.applySubstitution(term, substitution);
         assertEquals(expected, result);
     }
 
-    @ParameterizedTest(name = "{index} -> literal={0}, expected={1}, substitution={2}")
+    @ParameterizedTest(name = "{index} -> lit={0}, expected={1}, substitution={2}")
     @MethodSource("provideParametersForApplySubstitutionToLiteral")
-    void testApplySubstitutionToLiteral(Literal input, Literal expected, Map<String, Term> substitution) {
-        Literal result = Substitution.applySubstitution(input, substitution);
+    void testApplySubstitutionToLiteral(Literal lit, Literal expected, Map<String, Term> substitution) {
+        Literal result = Substitution.applySubstitution(lit, substitution);
         assertEquals(expected, result);
     }
 

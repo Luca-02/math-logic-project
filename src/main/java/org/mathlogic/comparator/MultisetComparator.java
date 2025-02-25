@@ -3,11 +3,7 @@ package org.mathlogic.comparator;
 import org.mathlogic.structure.Term;
 
 import javax.validation.constraints.NotNull;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class MultisetComparator implements Comparator<Map<Term , Integer>> {
     private static final Comparator<Term> comparator = new LpoComparator();
@@ -99,9 +95,10 @@ public class MultisetComparator implements Comparator<Map<Term , Integer>> {
             Map<Term, Integer> m,
             Map<Term, Integer> n
     ) {
-        Set<Term> elements = new TreeSet<>(comparator);
+        List<Term> elements = new ArrayList<>();
         elements.addAll(m.keySet());
         elements.addAll(n.keySet());
+        elements.sort(comparator);
 
         Map<Term, Integer> integerMapping = new HashMap<>();
         Term last = Term.MINIMAL;

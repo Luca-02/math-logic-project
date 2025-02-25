@@ -71,13 +71,13 @@ class LiteralTest {
     @Test
     void testCopy() {
         Literal literal = Literal.parse("Q(f(?x, ?y), f(g(?x), ?y))");
-        Literal clone = literal.copy();
+        Literal copy = literal.copy();
 
-        assertEquals(literal, clone);
-        assertNotSame(literal, clone);
-        assertNotSame(literal.getTerms(), clone.getTerms());
+        assertEquals(literal, copy);
+        assertNotSame(literal, copy);
+        assertNotSame(literal.getTerms(), copy.getTerms());
         for (int i = 0; i < literal.getTerms().size(); i++) {
-            assertNotSame(literal.getTerms().get(i), clone.getTerms().get(i));
+            assertNotSame(literal.getTerms().get(i), copy.getTerms().get(i));
         }
     }
 
@@ -119,6 +119,12 @@ class LiteralTest {
                         Map.of(
                                 Term.parse("f(?x, ?y)"), 2,
                                 Term.parse("f(g(?x), ?y)"), 2
+                        )
+                ),
+                Arguments.of(
+                        Literal.parse("=(f(?x, ?y), f(?x, ?y))"),
+                        Map.of(
+                                Term.parse("f(?x, ?y)"), 2
                         )
                 )
         );

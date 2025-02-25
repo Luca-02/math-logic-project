@@ -34,6 +34,12 @@ class ReductionTest {
         return Stream.of(
                 Arguments.of(
                         new HashSet<>(Set.of(
+                                Clause.parse("P(f(a)) => P(f(a))")
+                        )),
+                        Set.of()
+                ),
+                Arguments.of(
+                        new HashSet<>(Set.of(
                                 Clause.parse("R(?x, s(?x)) => Q(f(?x)), R(?x, s(?x))"),
                                 Clause.parse("R(c, ?y) => R(c, ?y)"),
                                 Clause.parse("Q(f(?y)) =>")
