@@ -24,9 +24,6 @@ class UnificationTest {
         if (substitutions != Unification.INVALID_SUBSTITUTION) {
             assertNotNull(substitutions);
             assertEquals(expected, substitutions);
-
-            // From theory, we know that a unification is correct if and only if
-            // it outputs two equal literals when applied to the initial literals.
             assertTrue(Unification.unificationCorrectness(lit1, lit2, substitutions));
         }
     }
@@ -39,9 +36,6 @@ class UnificationTest {
         if (substitutions != Unification.INVALID_SUBSTITUTION) {
             assertNotNull(substitutions);
             assertEquals(expected, substitutions);
-
-            // From theory, we know that a matching is correct if and only if
-            // it outputs two equal literals when applied to the left initial literals.
             assertTrue(Unification.matchingCorrectness(lit1, lit2, substitutions));
         }
     }

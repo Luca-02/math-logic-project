@@ -26,7 +26,7 @@ public class MatchingReplacementResolution {
             for (Literal lit2 : target.getNegativeLiterals()) {
                 Map<String, Term> sigma = Unification.match(lit1, lit2);
 
-                if (sigma != Unification.INVALID_SUBSTITUTION &&
+                if (!Unification.invalidSubstitution(sigma) &&
                         checkMatchingReplacementResolution(reference, target, lit1, lit2, sigma)) {
                     Clause updated = target.copy();
                     updated.removeLiteral(lit2);

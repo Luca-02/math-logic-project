@@ -16,6 +16,7 @@ class SubsumptionTest {
     @MethodSource("provideParametersForSubsumption")
     void testSubsumption(Clause c1, Clause c2, boolean expected) {
         boolean result = Subsumption.isSubsumed(c1, c2);
+
         assertEquals(expected, result);
     }
 

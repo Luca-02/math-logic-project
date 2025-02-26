@@ -21,6 +21,21 @@ public class CalculusS extends AutomaticCalculus {
     private static final LpoComparator lpoComparator = new LpoComparator();
 
     @Override
+    protected void initialReduction() {
+        // Not implemented
+    }
+
+    @Override
+    protected void forwardReduction(Set<Clause> newClauses) {
+        // Not implemented
+    }
+
+    @Override
+    protected void backwardsReduction(Set<Clause> newClauses) {
+        // Not implemented
+    }
+
+    @Override
     protected void initClausesSets(Set<Clause> clauses) {
         Set<Clause> formattedClauses = formatClausesWrtIdentity(clauses);
         super.initClausesSets(formattedClauses);
@@ -176,35 +191,35 @@ public class CalculusS extends AutomaticCalculus {
             Term sArgument = p >= s.getArguments().size() ? s : sElements.get(p);
 
             // We dont manage s|p like a variable
-            if (sArgument.isVariable()) continue;
+            if (!sArgument.isVariable()) {
+                Map<String, Term> mgu = Unification.unify(sArgument, l);
 
-            Map<String, Term> mgu = Unification.unify(sArgument, l);
+                if (Unification.invalidSubstitution(mgu) ||
+                        !leftOrRightSuperpositionCanBeApplied(
+                                updatedClauseWithLit1, updatedClauseWithLit2, sortLit1, sortLit2, mgu, isLeft)) {
+                    continue;
+                }
 
-            if (mgu == Unification.INVALID_SUBSTITUTION ||
-                    !leftOrRightSuperpositionCanBeApplied(
-                            updatedClauseWithLit1, updatedClauseWithLit2, sortLit1, sortLit2, mgu, isLeft)) {
-                continue;
+                Clause updatedClauseWithLit1Copy = updatedClauseWithLit1.copy();
+                Clause updatedClauseWithLit2Copy = updatedClauseWithLit2.copy();
+                updatedClauseWithLit1Copy.removeLiteral(sortLit1);
+                updatedClauseWithLit2Copy.removeLiteral(sortLit2);
+
+                Set<Literal> mergedLiterals = new HashSet<>();
+                Literal newLit = new Literal(
+                        isLeft,
+                        IDENTITY_SYMBOL,
+                        s.replaceArgument(p, r),
+                        t
+                );
+
+                mergedLiterals.addAll(updatedClauseWithLit1Copy.getAllLiterals());
+                mergedLiterals.addAll(updatedClauseWithLit2Copy.getAllLiterals());
+                mergedLiterals.add(newLit);
+
+                Clause resolvent = new Clause(mergedLiterals);
+                return resolvent.applySubstitution(mgu);
             }
-
-            Clause updatedClauseWithLit1Copy = updatedClauseWithLit1.copy();
-            Clause updatedClauseWithLit2Copy = updatedClauseWithLit2.copy();
-            updatedClauseWithLit1Copy.removeLiteral(sortLit1);
-            updatedClauseWithLit2Copy.removeLiteral(sortLit2);
-
-            Set<Literal> mergedLiterals = new HashSet<>();
-            Literal newLit = new Literal(
-                    isLeft,
-                    IDENTITY_SYMBOL,
-                    s.replaceArgument(p, r),
-                    t
-            );
-
-            mergedLiterals.addAll(updatedClauseWithLit1Copy.getAllLiterals());
-            mergedLiterals.addAll(updatedClauseWithLit2Copy.getAllLiterals());
-            mergedLiterals.add(newLit);
-
-            Clause resolvent = new Clause(mergedLiterals);
-            return resolvent.applySubstitution(mgu);
         }
         return null;
     }
@@ -226,7 +241,7 @@ public class CalculusS extends AutomaticCalculus {
             currentClause.addLiteral(currentLit);
 
             Map<String, Term> mgu = Unification.unify(s, t);
-            if (mgu == Unification.INVALID_SUBSTITUTION ||
+            if (Unification.invalidSubstitution(mgu) ||
                     !equalityResolutionOrFactoringCanBeApplied(currentClause, currentLit, mgu)) {
                 continue;
             }
@@ -259,7 +274,7 @@ public class CalculusS extends AutomaticCalculus {
                 Term t2 = lit2.getTerms().get(1 - j);
 
                 Map<String, Term> mgu = Unification.unify(s1, s2);
-                if (mgu == Unification.INVALID_SUBSTITUTION ||
+                if (Unification.invalidSubstitution(mgu) ||
                         !equalityResolutionOrFactoringCanBeApplied(clause, lit1, mgu)) {
                     continue;
                 }

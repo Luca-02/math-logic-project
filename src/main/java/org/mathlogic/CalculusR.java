@@ -3,6 +3,7 @@ package org.mathlogic;
 import org.mathlogic.structure.Clause;
 import org.mathlogic.structure.Literal;
 import org.mathlogic.structure.Term;
+import org.mathlogic.utility.Reduction;
 import org.mathlogic.utility.Unification;
 
 import javax.validation.constraints.NotNull;
@@ -13,6 +14,28 @@ import java.util.Map;
 import java.util.Set;
 
 public class CalculusR extends AutomaticCalculus {
+    @Override
+    protected void initialReduction() {
+        Reduction.removeTautology(usable);
+        Reduction.subsumptionReduction(usable);
+        Reduction.matchingReplacementResolution(usable, usable);
+    }
+
+    @Override
+    protected void forwardReduction(Set<Clause> newClauses) {
+        Reduction.removeTautology(newClauses);
+        Reduction.subsumptionReduction(newClauses);
+        Reduction.matchingReplacementResolution(newClauses, newClauses);
+        Reduction.matchingReplacementResolution(worked, newClauses);
+        Reduction.matchingReplacementResolution(usable, newClauses);
+    }
+
+    @Override
+    protected void backwardsReduction(Set<Clause> newClauses) {
+        Reduction.matchingReplacementResolution(newClauses, worked);
+        Reduction.matchingReplacementResolution(newClauses, usable);
+    }
+
     @Override
     protected Set<Clause> inferAllPossibleClausesFromItself(Clause given, Clause renamedGiven) {
         // Factorization on given clause
@@ -83,7 +106,7 @@ public class CalculusR extends AutomaticCalculus {
             Literal negToDelete
     ) {
         Map<String, Term> mgu = Unification.unify(posToDelete, negToDelete);
-        if (mgu == Unification.INVALID_SUBSTITUTION ||
+        if (Unification.invalidSubstitution(mgu) ||
                 !resolutionCanBeApplied(clauseWithPos, clauseWithNeg, posToDelete, negToDelete, mgu)) {
             return null;
         }
@@ -106,7 +129,7 @@ public class CalculusR extends AutomaticCalculus {
      */
     public Clause applyRightFactorize(Clause clause, Literal lit1, Literal lit2) {
         Map<String, Term> mgu = Unification.unify(lit1, lit2);
-        if (mgu == Unification.INVALID_SUBSTITUTION ||
+        if (Unification.invalidSubstitution(mgu) ||
                 !rightFactorizationCanBeApplied(clause, lit1, mgu)) {
             return null;
         }

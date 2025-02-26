@@ -28,6 +28,7 @@ class ClauseTest {
     @MethodSource("provideParametersForApplySubstitutionToClause")
     void testApplySubstitutionToClause(Clause clause, Clause expected, Map<String, Term> substitution) {
         Clause result = clause.applySubstitution(substitution);
+
         assertEquals(expected, result);
     }
 

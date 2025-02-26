@@ -13,10 +13,19 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Unification {
-    public static final Map<String, Term> INVALID_SUBSTITUTION = null;
+    protected static final Map<String, Term> INVALID_SUBSTITUTION = null;
+
+    /**
+     * Check if a substitution is valid.
+     */
+    public static boolean invalidSubstitution(Map<String, Term> substitution) {
+        return substitution == INVALID_SUBSTITUTION;
+    }
 
     /**
      * Control whether substitutions applied to two literals make them unify correctly.
+     * From theory, we know that a unification is correct if and only if
+     * it outputs two equal literals when applied to the two initial literals.
      */
     public static boolean unificationCorrectness(
             @NotNull Literal lit1,
@@ -35,6 +44,8 @@ public class Unification {
 
     /**
      * Control whether substitutions applied to one literals produce the other literal.
+     * From theory, we know that a matching is correct if and only if
+     * it outputs two equal literals when applied to the left initial literals.
      */
     public static boolean matchingCorrectness(
             @NotNull Literal lit1,

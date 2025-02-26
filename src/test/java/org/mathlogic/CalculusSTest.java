@@ -54,6 +54,14 @@ class CalculusSTest {
         assertEquals(expected, result);
     }
 
+    @ParameterizedTest(name = "{index} -> clauses={0}, expected={1}")
+    @MethodSource("provideParametersForRefute")
+    void testRefute(Set<Clause> clauses, boolean expected) {
+        boolean result = resolver.refute(clauses);
+
+        assertEquals(expected, result);
+    }
+
     Stream<Arguments> provideParametersForApplyRightSuperposition() {
         return Stream.of(
                 Arguments.of(
@@ -128,6 +136,34 @@ class CalculusSTest {
                         Literal.parse("=(f(?y), ?x)"),
                         Literal.parse("=(?y, f(?x))"),
                         Clause.parse("=(?x, ?x) => =(f(?x), ?x)")
+                )
+        );
+    }
+
+    Stream<Arguments> provideParametersForRefute() {
+        return Stream.of(
+                Arguments.of(
+                        Set.of(
+                                Clause.parse("Q(f(?y)) => R(c, ?y)"),
+                                Clause.parse("=>")
+                        ),
+                        true
+                ),
+                Arguments.of(
+                        Set.of(
+                                Clause.parse("=> =(p(d), a)"),
+                                Clause.parse("=> =(p(c), a)"),
+                                Clause.parse("f(c, d) =>"),
+                                Clause.parse("=(p(?x), a) => =(m(?x), b)"),
+                                Clause.parse("=(p(?x), p(?y)), =(m(?x), m(?y)) => f(?x, ?y)"),
+                                Clause.parse("f(?x, ?y) => =(m(?x), m(?y))"),
+                                Clause.parse("f(?x, ?y) => =(p(?x), p(?y))")
+                        ),
+                        true
+                ),
+                Arguments.of(
+                        Set.of(),
+                        false // Empty clauses set
                 )
         );
     }

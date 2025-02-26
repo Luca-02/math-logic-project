@@ -1,7 +1,6 @@
 package org.mathlogic;
 
 import org.mathlogic.structure.Clause;
-import org.mathlogic.utility.Reduction;
 import org.mathlogic.utility.Renaming;
 
 import java.util.HashSet;
@@ -107,30 +106,17 @@ public abstract class AutomaticCalculus {
     /**
      * Initial reduction on the given input clauses to refute.
      */
-    private void initialReduction() {
-        Reduction.removeTautology(usable);
-        Reduction.subsumptionReduction(usable);
-        Reduction.matchingReplacementResolution(usable, usable);
-    }
+    protected abstract void initialReduction();
 
     /**
      * Forward reductions on the new found clauses.
      */
-    private void forwardReduction(Set<Clause> newClauses) {
-        Reduction.removeTautology(newClauses);
-        Reduction.subsumptionReduction(newClauses);
-        Reduction.matchingReplacementResolution(newClauses, newClauses);
-        Reduction.matchingReplacementResolution(worked, newClauses);
-        Reduction.matchingReplacementResolution(usable, newClauses);
-    }
+    protected abstract void forwardReduction(Set<Clause> newClauses);
 
     /**
      * Backwards reductions on olds clauses in {@code Us} and {@code Wo} with the new ones
      */
-    private void backwardsReduction(Set<Clause> newClauses) {
-        Reduction.matchingReplacementResolution(newClauses, worked);
-        Reduction.matchingReplacementResolution(newClauses, usable);
-    }
+    protected abstract void backwardsReduction(Set<Clause> newClauses);
 
     /**
      * Apply all possible inference between {@code given} clause and itself renamed so that
