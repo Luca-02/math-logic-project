@@ -1,6 +1,5 @@
 package org.mathlogic.structure;
 
-import org.mathlogic.exception.ArgumentIndexOutOfBoundsException;
 import org.mathlogic.utility.Parsing;
 
 import javax.validation.constraints.NotNull;
@@ -79,10 +78,11 @@ public class Term implements LogicalStructure<Term> {
 
     /**
      * Replace the argument at index {@code p} with the new one.
+     * Index out of bound indicate the root node of the current term.
      */
     public Term replaceArgument(int p, @NotNull Term replacement) {
-        if (p < 0 || p >= arguments.size()) {
-            throw new ArgumentIndexOutOfBoundsException(p, arguments);
+        if (p < -1 || p >= arguments.size()) {
+            return replacement;
         }
 
         List<Term> newArguments = new ArrayList<>(arguments);

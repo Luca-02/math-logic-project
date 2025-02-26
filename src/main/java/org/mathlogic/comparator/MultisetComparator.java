@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MultisetComparator implements Comparator<Map<Term , Integer>> {
-    private static final Comparator<Term> comparator = new LpoComparator();
+    private static final Comparator<Term> lpoComparator = new LpoComparator();
 
     /**
      * Let define {@code M} and {@code N} two multisets. We say that {@code M > N} iff we can
@@ -102,7 +102,7 @@ public class MultisetComparator implements Comparator<Map<Term , Integer>> {
         List<Term> elements = new ArrayList<>();
         elements.addAll(m.keySet());
         elements.addAll(n.keySet());
-        elements.sort(comparator);
+        elements.sort(lpoComparator);
 
         List<Integer> elementsInteger = new ArrayList<>();
         for (int i = 0; i < elements.size(); i++) {
@@ -114,7 +114,7 @@ public class MultisetComparator implements Comparator<Map<Term , Integer>> {
 
             Term previous = elements.get(i - 1);
 
-            if (comparator.compare(previous, current) == 0 && previous.equals(current)) {
+            if (lpoComparator.compare(previous, current) == 0 && previous.equals(current)) {
                 elementsInteger.add(elementsInteger.get(i - 1));
             } else {
                 elementsInteger.add(elementsInteger.get(i - 1) + 1);

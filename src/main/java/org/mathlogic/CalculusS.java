@@ -8,7 +8,12 @@ import org.mathlogic.utility.MaximalLiteral;
 import org.mathlogic.utility.Unification;
 
 import javax.validation.constraints.NotNull;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.mathlogic.Constant.IDENTITY_SYMBOL;
 
@@ -77,7 +82,7 @@ public class CalculusS extends AutomaticCalculus {
         Set<Clause> newClauses = new HashSet<>();
         for (Literal pos1 : clauseWithPos1.getMaximalPositiveLiterals()) {
             for (Literal pos2 : clauseWithPos2.getMaximalPositiveLiterals()) {
-                Clause newClause = applyRightSuperposition(clauseWithPos1, clauseWithPos2, pos1, pos2);
+                Clause newClause = applyLeftOrRightSuperposition(clauseWithPos1, clauseWithPos2, pos1, pos2, false);
                 if (newClause != null) {
                     newClauses.add(newClause);
                 }
@@ -91,14 +96,14 @@ public class CalculusS extends AutomaticCalculus {
      */
     private Set<Clause> leftSuperposition(Clause clauseWithPos, Clause clauseWithNeg) {
         Set<Clause> newClauses = new HashSet<>();
-//        for (Literal pos : clauseWithPos.getMaximalPositiveLiterals()) {
-//            for (Literal neg : clauseWithNeg.getMaximalNegativeLiterals()) {
-//                Clause newClause = applyLeftSuperposition(clauseWithPos, clauseWithNeg, pos, neg);
-//                if (newClause != null) {
-//                    newClauses.add(newClause);
-//                }
-//            }
-//        }
+        for (Literal pos : clauseWithPos.getMaximalPositiveLiterals()) {
+            for (Literal neg : clauseWithNeg.getMaximalNegativeLiterals()) {
+                Clause newClause = applyLeftOrRightSuperposition(clauseWithPos, clauseWithNeg, pos, neg, true);
+                if (newClause != null) {
+                    newClauses.add(newClause);
+                }
+            }
+        }
         return newClauses;
     }
 
@@ -135,53 +140,67 @@ public class CalculusS extends AutomaticCalculus {
     }
 
     /**
-     * Right Superposition of two clauses with the given literals for which we need to perform the unification.
+     * Left or Right Superposition of two clauses with the given literals for which we need to perform the unification.
      */
-    public Clause applyRightSuperposition(
-            Clause clauseWithPos1,
-            Clause clauseWithPos2,
-            Literal pos1,
-            Literal pos2
+    public Clause applyLeftOrRightSuperposition(
+            Clause clauseWithLit1,
+            Clause clauseWithLit2,
+            Literal lit1,
+            Literal lit2,
+            boolean isLeft
     ) {
         // Sort the arguments in descending order
-        Literal sortPos1 = sortLiteralArgumentsDesc(pos1);
-        Literal sortPos2 = sortLiteralArgumentsDesc(pos2);
+        // Treats identities not symmetrically, using only the maximal terms
+        Literal sortLit1 = sortLiteralArgumentsDesc(lit1);
+        Literal sortLit2 = sortLiteralArgumentsDesc(lit2);
 
-        Clause updatedClauseWithPos1 = clauseWithPos1.copy();
-        updatedClauseWithPos1.removeLiteral(pos1);
-        updatedClauseWithPos1.addLiteral(sortPos1);
+        Clause updatedClauseWithLit1 = clauseWithLit1.copy();
+        updatedClauseWithLit1.removeLiteral(lit1);
+        updatedClauseWithLit1.addLiteral(sortLit1);
 
-        Clause updatedClauseWithPos2 = clauseWithPos2.copy();
-        updatedClauseWithPos2.removeLiteral(pos2);
-        updatedClauseWithPos2.addLiteral(sortPos2);
+        Clause updatedClauseWithLit2 = clauseWithLit2.copy();
+        updatedClauseWithLit2.removeLiteral(lit2);
+        updatedClauseWithLit2.addLiteral(sortLit2);
 
         // pos1: l = r
-        Term l = sortPos1.getTerms().get(0);
-        Term r = sortPos1.getTerms().get(1);
+        Term r = sortLit1.getTerms().get(1);
+        Term l = sortLit1.getTerms().get(0);
         // pos2: s = t
-        Term s = sortPos2.getTerms().get(0);
-        Term t = sortPos2.getTerms().get(1);
+        Term s = sortLit2.getTerms().get(0);
+        Term t = sortLit2.getTerms().get(1);
 
-        List<Term> sArguments = s.getArguments();
-        for (int p = 0; p < sArguments.size(); p++) {
+        List<Term> sElements = new ArrayList<>(s.getArguments());
+        sElements.add(s);
+        for (int p = 0; p <= sElements.size(); p++) {
+            // Treat also the whole term s
+            Term sArgument = p >= s.getArguments().size() ? s : sElements.get(p);
+
             // We dont manage s|p like a variable
-            if (sArguments.get(p).isVariable()) continue;
+            if (sArgument.isVariable()) continue;
 
-            Map<String, Term> mgu = Unification.unify(sArguments.get(p), l);
+            Map<String, Term> mgu = Unification.unify(sArgument, l);
+
             if (mgu == Unification.INVALID_SUBSTITUTION ||
-                    !rightSuperpositionCanBeApplied(updatedClauseWithPos1, updatedClauseWithPos2, sortPos1, sortPos2, mgu)) {
+                    !leftOrRightSuperpositionCanBeApplied(
+                            updatedClauseWithLit1, updatedClauseWithLit2, sortLit1, sortLit2, mgu, isLeft)) {
                 continue;
             }
 
-            Clause updatedClauseWithPos1Copy = updatedClauseWithPos1.copy();
-            Clause updatedClauseWithPos2Copy = updatedClauseWithPos2.copy();
-            updatedClauseWithPos1Copy.removeLiteral(sortPos1);
-            updatedClauseWithPos2Copy.removeLiteral(sortPos2);
+            Clause updatedClauseWithLit1Copy = updatedClauseWithLit1.copy();
+            Clause updatedClauseWithLit2Copy = updatedClauseWithLit2.copy();
+            updatedClauseWithLit1Copy.removeLiteral(sortLit1);
+            updatedClauseWithLit2Copy.removeLiteral(sortLit2);
 
             Set<Literal> mergedLiterals = new HashSet<>();
-            Literal newLit = new Literal(false, IDENTITY_SYMBOL, s.replaceArgument(p, r), t);
-            mergedLiterals.addAll(updatedClauseWithPos1Copy.getAllLiterals());
-            mergedLiterals.addAll(updatedClauseWithPos2Copy.getAllLiterals());
+            Literal newLit = new Literal(
+                    isLeft,
+                    IDENTITY_SYMBOL,
+                    s.replaceArgument(p, r),
+                    t
+            );
+
+            mergedLiterals.addAll(updatedClauseWithLit1Copy.getAllLiterals());
+            mergedLiterals.addAll(updatedClauseWithLit2Copy.getAllLiterals());
             mergedLiterals.add(newLit);
 
             Clause resolvent = new Clause(mergedLiterals);
@@ -208,7 +227,7 @@ public class CalculusS extends AutomaticCalculus {
 
             Map<String, Term> mgu = Unification.unify(s, t);
             if (mgu == Unification.INVALID_SUBSTITUTION ||
-                    !equalityResolutionCanBeApplied(currentClause, currentLit, mgu)) {
+                    !equalityResolutionOrFactoringCanBeApplied(currentClause, currentLit, mgu)) {
                 continue;
             }
 
@@ -241,7 +260,7 @@ public class CalculusS extends AutomaticCalculus {
 
                 Map<String, Term> mgu = Unification.unify(s1, s2);
                 if (mgu == Unification.INVALID_SUBSTITUTION ||
-                        !equalityFactoringCanBeApplied(clause, lit1, mgu)) {
+                        !equalityResolutionOrFactoringCanBeApplied(clause, lit1, mgu)) {
                     continue;
                 }
 
@@ -261,46 +280,35 @@ public class CalculusS extends AutomaticCalculus {
     }
 
     /**
-     * Function that returns whether the Right Superposition rule can be applied.
+     * Function that returns whether the Left or Right Superposition rule can be applied.
      */
-    private boolean rightSuperpositionCanBeApplied(
-            Clause clauseWithPos1,
-            Clause clauseWithPos2,
-            Literal pos1,
-            Literal pos2,
-            Map<String, Term> mgu
+    private boolean leftOrRightSuperpositionCanBeApplied(
+            Clause clauseWithLit1,
+            Clause clauseWithLit2,
+            Literal lit1,
+            Literal lit2,
+            Map<String, Term> mgu,
+            boolean isLeft
     ) {
-        Clause subClauseWithPos1 = clauseWithPos1.applySubstitution(mgu);
-        Clause subClauseWithPos2 = clauseWithPos2.applySubstitution(mgu);
-        Literal subPos1 = pos1.applySubstitution(mgu);
-        Literal subPos2 = pos2.applySubstitution(mgu);
-        Term lmu = subPos1.getTerms().get(0);
-        Term rmu = subPos1.getTerms().get(1);
-        Term smu = subPos2.getTerms().get(0);
-        Term tmu = subPos2.getTerms().get(1);
+        Clause subClauseWithLit1 = clauseWithLit1.applySubstitution(mgu);
+        Clause subClauseWithLit2 = clauseWithLit2.applySubstitution(mgu);
+        Literal subLit1 = lit1.applySubstitution(mgu);
+        Literal subLit2 = lit2.applySubstitution(mgu);
+        Term lmu = subLit1.getTerms().get(0);
+        Term rmu = subLit1.getTerms().get(1);
+        Term smu = subLit2.getTerms().get(0);
+        Term tmu = subLit2.getTerms().get(1);
         return lpoComparator.compare(lmu, rmu) > 0 &&
                 lpoComparator.compare(smu, tmu) > 0 &&
-                MaximalLiteral.isStrictlyMaximal(subPos1, subClauseWithPos1) &&
-                MaximalLiteral.isStrictlyMaximal(subPos2, subClauseWithPos2);
+                MaximalLiteral.isStrictlyMaximal(subLit1, subClauseWithLit1) &&
+                (isLeft ? MaximalLiteral.isMaximal(subLit2, subClauseWithLit2) :
+                        MaximalLiteral.isStrictlyMaximal(subLit2, subClauseWithLit2));
     }
 
     /**
-     * Function that returns whether the Equality Resolution rule can be applied.
+     * Function that returns whether the Equality Resolution or Factoring rule can be applied.
      */
-    private boolean equalityResolutionCanBeApplied(
-            Clause clause,
-            Literal lit,
-            @NotNull Map<String, Term> mgu
-    ) {
-        Clause subClause = clause.applySubstitution(mgu);
-        Literal subLit = lit.applySubstitution(mgu);
-        return MaximalLiteral.isMaximal(subLit, subClause);
-    }
-
-    /**
-     * Function that returns whether the Equality Factorization rule can be applied.
-     */
-    private boolean equalityFactoringCanBeApplied(
+    private boolean equalityResolutionOrFactoringCanBeApplied(
             Clause clause,
             Literal lit,
             @NotNull Map<String, Term> mgu

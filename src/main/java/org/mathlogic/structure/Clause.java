@@ -7,7 +7,7 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -36,7 +36,7 @@ public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
     private final Map<LiteralState, Set<Literal>> literalsMap;
 
     public Clause(@NotNull Set<Literal> literals) {
-        this.literalsMap = new HashMap<>();
+        this.literalsMap = new EnumMap<>(LiteralState.class);
         setLiterals(literals);
     }
 

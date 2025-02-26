@@ -31,7 +31,7 @@ public class LpoComparator implements Comparator<Term> {
      * <li> {@code f = g} and {@code there exists k ∈ {1, ..., n} s.t. for all i < k si = ti, sk < tk and for all j ∈ {k + 1, ..., n} sj <lpo t} </li>
      * <li> {@code s ≤lpo ti for some i ∈ {1, ..., n}} </li>
      * </ul>
-     * where {@code s <=lpo t} is shorthand for {@code s = t or s <lpo t}.
+     * where {@code s ≤lpo t} is shorthand for {@code s = t or s <lpo t}.
      */
     @Override
     public int compare(@NotNull Term s, @NotNull Term t) {

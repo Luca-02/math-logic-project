@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mathlogic.structure.Clause;
 import org.mathlogic.structure.Literal;
 
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,10 +22,18 @@ class CalculusSTest {
         resolver = new CalculusS();
     }
 
-    @ParameterizedTest(name = "{index} -> clause={0}, lit1={1}, lit2={2}, expected={3}")
+    @ParameterizedTest(name = "{index} -> c1={0}, c2={1}, l1={2}, l2={3}, expected={4}")
     @MethodSource("provideParametersForApplyRightSuperposition")
     void testApplyRightSuperposition(Clause c1, Clause c2, Literal l1, Literal l2, Clause expected) {
-        Clause result = resolver.applyRightSuperposition(c1, c2, l1, l2);
+        Clause result = resolver.applyLeftOrRightSuperposition(c1, c2, l1, l2, false);
+
+        assertEquals(expected, result);
+    }
+
+    @ParameterizedTest(name = "{index} -> c1={0}, c2={1}, l1={2}, l2={3}, expected={4}")
+    @MethodSource("provideParametersForApplyLeftSuperposition")
+    void testApplyLeftSuperposition(Clause c1, Clause c2, Literal l1, Literal l2, Clause expected) {
+        Clause result = resolver.applyLeftOrRightSuperposition(c1, c2, l1, l2, true);
 
         assertEquals(expected, result);
     }
@@ -67,6 +76,32 @@ class CalculusSTest {
                         Literal.parse("=(b(?x), ?x)"),
                         Literal.parse("=(a(?x', b(?x')), true)"),
                         Clause.parse("=(?x, ?x) => =(a(?x, ?x), true)")
+                )
+        );
+    }
+
+    Stream<Arguments> provideParametersForApplyLeftSuperposition() {
+        return Stream.of(
+                Arguments.of(
+                        Clause.parse("=> =(p(c), a)"),
+                        Clause.parse("=(p(?x'), p(?y')), =(m(?x'), m(?y')) => =(f(?x', ?y'), true)"),
+                        Literal.parse("=(p(c), a)"),
+                        Literal.parse("¬=(p(?x'), p(?y'))"),
+                        Clause.parse("=(a, p(?y')), =(m(c), m(?y')) => =(f(c, ?y'), true)")
+                ),
+                Arguments.of(
+                        Clause.parse("=> =(p(d), a)"),
+                        Clause.parse("=(p(?y'), a), =(m(?y'), m(c)) => =(f(c, ?y'), true)"),
+                        Literal.parse("=(p(d), a)"),
+                        Literal.parse("¬=(p(?y'), a)"),
+                        Clause.parse("=(m(d), m(c)), =(a, a) => =(f(c, d), true)")
+                ),
+                Arguments.of(
+                        Clause.parse("=> =(m(d), b)"),
+                        Clause.parse("=(a, a), =(m(d), m(c)) => =(f(c, d), true)"),
+                        Literal.parse("=(m(d), b)"),
+                        Literal.parse("¬=(m(d), m(c))"),
+                        Clause.parse("=(b, m(c)), =(a, a) => =(f(c, d), true)")
                 )
         );
     }

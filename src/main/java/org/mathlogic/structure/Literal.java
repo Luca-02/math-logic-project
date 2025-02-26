@@ -3,7 +3,14 @@ package org.mathlogic.structure;
 import org.mathlogic.utility.Parsing;
 
 import javax.validation.constraints.NotNull;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.mathlogic.Constant.IDENTITY_SYMBOL;
 import static org.mathlogic.Constant.NOT_SYMBOL;
@@ -74,9 +81,9 @@ public class Literal implements LogicalStructure<Literal> {
             return this;
         }
 
-        List<Term> terms = new ArrayList<>(getTerms());
-        terms.sort(comparator);
-        return new Literal(isNegated(), getPredicate(), terms);
+        List<Term> sortedTerms = new ArrayList<>(getTerms());
+        sortedTerms.sort(comparator);
+        return new Literal(isNegated(), getPredicate(), sortedTerms);
     }
 
     /**

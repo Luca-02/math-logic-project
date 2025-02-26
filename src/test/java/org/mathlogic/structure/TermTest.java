@@ -5,7 +5,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mathlogic.exception.ArgumentIndexOutOfBoundsException;
 import org.mathlogic.exception.ParsingEmptyLogicalStructureException;
 
 import java.util.List;
@@ -102,18 +101,6 @@ class TermTest {
         Term result = term.replaceArgument(1, replacement);
 
         assertEquals(expected, result);
-    }
-
-    @Test
-    void testReplaceArgumentException() {
-        assertThrows(
-                ArgumentIndexOutOfBoundsException.class,
-                () -> {
-                    Term term = Term.parse("f(?x, g(?y))");
-                    Term replacement = Term.parse("h(a, b)");
-                    term.replaceArgument(2, replacement);
-                }
-        );
     }
 
     Stream<String> provideParametersForEquals() {

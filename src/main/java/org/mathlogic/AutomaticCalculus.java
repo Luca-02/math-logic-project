@@ -31,9 +31,11 @@ public abstract class AutomaticCalculus {
      * otherwise {@code false} (Completion Found).
      */
     public boolean refute(Set<Clause> clauses) {
-        if (clauses.isEmpty()) return false;
-
         initClausesSets(clauses);
+
+        if (usable.isEmpty()) {
+            return false;
+        }
 
         do {
             // If Us contains an empty clause we have reached a refutation.
