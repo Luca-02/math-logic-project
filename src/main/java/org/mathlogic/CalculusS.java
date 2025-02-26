@@ -21,6 +21,12 @@ public class CalculusS extends AutomaticCalculus {
     private static final LpoComparator lpoComparator = new LpoComparator();
 
     @Override
+    protected void initClausesSets(Set<Clause> clauses) {
+        Set<Clause> formattedClauses = formatClausesWrtIdentity(clauses);
+        super.initClausesSets(formattedClauses);
+    }
+
+    @Override
     protected void initialReduction() {
         // Not implemented
     }
@@ -33,12 +39,6 @@ public class CalculusS extends AutomaticCalculus {
     @Override
     protected void backwardsReduction(Set<Clause> newClauses) {
         // Not implemented
-    }
-
-    @Override
-    protected void initClausesSets(Set<Clause> clauses) {
-        Set<Clause> formattedClauses = formatClausesWrtIdentity(clauses);
-        super.initClausesSets(formattedClauses);
     }
 
     /**
@@ -302,7 +302,7 @@ public class CalculusS extends AutomaticCalculus {
             Clause clauseWithLit2,
             Literal lit1,
             Literal lit2,
-            Map<String, Term> mgu,
+            @NotNull Map<String, Term> mgu,
             boolean isLeft
     ) {
         Clause subClauseWithLit1 = clauseWithLit1.applySubstitution(mgu);
