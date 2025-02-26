@@ -5,7 +5,12 @@ import org.mathlogic.structure.Literal;
 import org.mathlogic.structure.Term;
 
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class Unification {
     public static final Map<String, Term> INVALID_SUBSTITUTION = null;
@@ -18,8 +23,8 @@ public class Unification {
             @NotNull Literal lit2,
             @NotNull Map<String, Term> substitutions
     ) {
-        Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
-        Literal subLit2 = Substitution.applySubstitution(lit2, substitutions);
+        Literal subLit1 = lit1.applySubstitution(substitutions);
+        Literal subLit2 = lit2.applySubstitution(substitutions);
 
         if (subLit1.isNegated() != subLit2.isNegated()) {
             subLit1 = subLit1.negate();
@@ -36,7 +41,7 @@ public class Unification {
             @NotNull Literal lit2,
             @NotNull Map<String, Term> substitutions
     ) {
-        Literal subLit1 = Substitution.applySubstitution(lit1, substitutions);
+        Literal subLit1 = lit1.applySubstitution(substitutions);
 
         if (subLit1.isNegated() != lit2.isNegated()) {
             subLit1 = subLit1.negate();
@@ -47,7 +52,7 @@ public class Unification {
 
     /**
      * Unify two literals. Returns a substitution map if unification succeeds,
-     * otherwise returns {@code null}.
+     * otherwise returns {@code INVALID_SUBSTITUTION}.
      */
     public static Map<String, Term> unify(@NotNull Literal l1, @NotNull Literal l2) {
         List<Equation> equations = createEquations(l1, l2);
@@ -56,7 +61,7 @@ public class Unification {
 
     /**
      * Unify two terms. Returns a substitution map if unification succeeds,
-     * otherwise returns {@code null}.
+     * otherwise returns {@code INVALID_SUBSTITUTION}.
      */
     public static Map<String, Term> unify(@NotNull Term t1, @NotNull Term t2) {
         List<Equation> equations = new ArrayList<>();
@@ -66,7 +71,7 @@ public class Unification {
 
     /**
      * Matching two literals. Returns a substitution map if the match is successful,
-     * otherwise returns {@code null}.
+     * otherwise returns {@code INVALID_SUBSTITUTION}.
      */
     public static Map<String, Term> match(@NotNull Literal l1, @NotNull Literal l2) {
         List<Equation> equations = createEquations(l1, l2);
@@ -203,8 +208,8 @@ public class Unification {
                 continue;
             }
 
-            Term newFirst = Substitution.applySubstitution(eq.getLeft(), substitution);
-            Term newSecond = Substitution.applySubstitution(eq.getRight(), substitution);
+            Term newFirst = eq.getLeft().applySubstitution(substitution);
+            Term newSecond = eq.getRight().applySubstitution(substitution);
 
             if (!newFirst.equals(eq.getLeft()) || !newSecond.equals(eq.getRight())) {
                 modified = true;

@@ -1,10 +1,13 @@
 package org.mathlogic.structure;
 
+import org.mathlogic.exception.ArgumentIndexOutOfBoundsException;
 import org.mathlogic.utility.Parsing;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.mathlogic.Constant.VARIABLE_IDENTIFIER;
@@ -18,6 +21,7 @@ public class Term implements LogicalStructure<Term> {
      * Minimum term in the ordering of terms, is a constant.
      */
     public static final Term MINIMAL = new Term("true");
+    public static final Term DEFAULT_VARIABLE = new Term("?x");
 
     /**
      * Term's function name.
@@ -39,7 +43,7 @@ public class Term implements LogicalStructure<Term> {
     }
 
     public List<Term> getArguments() {
-        return arguments;
+        return Collections.unmodifiableList(arguments);
     }
 
     public boolean isVariable() {
@@ -73,6 +77,19 @@ public class Term implements LogicalStructure<Term> {
         }
     }
 
+    /**
+     * Replace the argument at index {@code p} with the new one.
+     */
+    public Term replaceArgument(int p, @NotNull Term replacement) {
+        if (p < 0 || p >= arguments.size()) {
+            throw new ArgumentIndexOutOfBoundsException(p, arguments);
+        }
+
+        List<Term> newArguments = new ArrayList<>(arguments);
+        newArguments.set(p, replacement);
+        return new Term(name, newArguments);
+    }
+
     @Override
     public List<String> collectSymbols() {
         List<String> symbols = new ArrayList<>();
@@ -90,6 +107,19 @@ public class Term implements LogicalStructure<Term> {
             copiedArguments.add(arg.copy());
         }
         return new Term(name, copiedArguments);
+    }
+
+    @Override
+    public Term applySubstitution(@NotNull Map<String, Term> substitutions) {
+        if (isVariable()) {
+            Term sub = substitutions.get(getName());
+            return sub != null ? sub.copy() : this;
+        } else {
+            List<Term> args = getArguments().stream()
+                    .map(arg -> arg.applySubstitution(substitutions))
+                    .toList();
+            return new Term(getName(), args);
+        }
     }
 
     @Override

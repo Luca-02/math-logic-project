@@ -4,7 +4,6 @@ import org.mathlogic.structure.Clause;
 import org.mathlogic.structure.Literal;
 import org.mathlogic.structure.Term;
 import org.mathlogic.utility.MaximalLiteral;
-import org.mathlogic.utility.Substitution;
 
 import javax.validation.constraints.NotNull;
 import java.util.Map;
@@ -34,10 +33,10 @@ public class SortedCalculus extends CalculusR {
             Literal negToDelete,
             @NotNull Map<String, Term> mgu
     ) {
-        Clause subClauseWithPos = Substitution.applySubstitution(clauseWithPos, mgu);
-        Literal subPosToDelete = Substitution.applySubstitution(posToDelete, mgu);
-        Clause subClauseWithNeg = Substitution.applySubstitution(clauseWithNeg, mgu);
-        Literal subNegToDelete = Substitution.applySubstitution(negToDelete, mgu);
+        Clause subClauseWithPos = clauseWithPos.applySubstitution(mgu);
+        Clause subClauseWithNeg = clauseWithNeg.applySubstitution(mgu);
+        Literal subPosToDelete = posToDelete.applySubstitution(mgu);
+        Literal subNegToDelete = negToDelete.applySubstitution(mgu);
         return MaximalLiteral.isStrictlyMaximal(subPosToDelete, subClauseWithPos) &&
                 MaximalLiteral.isMaximal(subNegToDelete, subClauseWithNeg);
     }
@@ -48,8 +47,8 @@ public class SortedCalculus extends CalculusR {
             Literal lit,
             @NotNull Map<String, Term> mgu
     ) {
-        Clause subClause = Substitution.applySubstitution(clause, mgu);
-        Literal subLit = Substitution.applySubstitution(lit, mgu);
+        Clause subClause = clause.applySubstitution(mgu);
+        Literal subLit = lit.applySubstitution(mgu);
         return MaximalLiteral.isMaximal(subLit, subClause);
     }
 }

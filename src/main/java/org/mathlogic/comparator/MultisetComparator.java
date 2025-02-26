@@ -3,7 +3,11 @@ package org.mathlogic.comparator;
 import org.mathlogic.structure.Term;
 
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MultisetComparator implements Comparator<Map<Term , Integer>> {
     private static final Comparator<Term> comparator = new LpoComparator();
@@ -100,17 +104,27 @@ public class MultisetComparator implements Comparator<Map<Term , Integer>> {
         elements.addAll(n.keySet());
         elements.sort(comparator);
 
-        Map<Term, Integer> integerMapping = new HashMap<>();
-        Term last = Term.MINIMAL;
-        int count = 0;
-        for (Term term : elements) {
-            integerMapping.put(term, count);
-            if (term.equals(Term.MINIMAL) || comparator.compare(last, term) < 0) {
-                count++;
+        List<Integer> elementsInteger = new ArrayList<>();
+        for (int i = 0; i < elements.size(); i++) {
+            Term current = elements.get(i);
+            if (i == 0) {
+                elementsInteger.add(0);
+                continue;
             }
-            last = term;
+
+            Term previous = elements.get(i - 1);
+
+            if (comparator.compare(previous, current) == 0 && previous.equals(current)) {
+                elementsInteger.add(elementsInteger.get(i - 1));
+            } else {
+                elementsInteger.add(elementsInteger.get(i - 1) + 1);
+            }
         }
 
+        Map<Term, Integer> integerMapping = new HashMap<>();
+        for (int i = 0; i < elementsInteger.size(); i++) {
+            integerMapping.put(elements.get(i), elementsInteger.get(i));
+        }
         return integerMapping;
     }
 
@@ -124,7 +138,9 @@ public class MultisetComparator implements Comparator<Map<Term , Integer>> {
     ) {
         Map<Integer, Integer> reduction = new HashMap<>();
         for (Map.Entry<Term, Integer> entry : multiset.entrySet()) {
-            reduction.put(integerMapping.get(entry.getKey()), entry.getValue());
+            int integerTermValue = integerMapping.get(entry.getKey());
+            int existingValue = reduction.getOrDefault(integerTermValue, 0);
+            reduction.put(integerTermValue, existingValue + entry.getValue());
         }
         return reduction;
     }

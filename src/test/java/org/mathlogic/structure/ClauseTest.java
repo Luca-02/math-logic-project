@@ -1,13 +1,19 @@
 package org.mathlogic.structure;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mathlogic.exception.ParsingEmptyLogicalStructureException;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ClauseTest {
     String predicate1 = "Q";
     String predicate2 = "S";
@@ -17,6 +23,13 @@ class ClauseTest {
     String litStr1 = String.format("%s(%s)", predicate1, termStr1);
     String litStr2 = String.format("%s(%s, %s)", predicate2, termStr1, termStr2);
     String litStr3 = String.format("%s(%s, %s)", predicate3, termStr1, termStr2);
+
+    @ParameterizedTest(name = "{index} -> clause={0}, expected={1}, substitution={2}")
+    @MethodSource("provideParametersForApplySubstitutionToClause")
+    void testApplySubstitutionToClause(Clause clause, Clause expected, Map<String, Term> substitution) {
+        Clause result = clause.applySubstitution(substitution);
+        assertEquals(expected, result);
+    }
 
     @Test
     void testInvalidClause() {
@@ -96,5 +109,39 @@ class ClauseTest {
         for (int i = 0; i < negative.size(); i++) {
             assertNotSame(negative.get(i), negativeClone.get(i));
         }
+    }
+
+    @Test
+    void testFormatLiteralsWrtIdentity() {
+        Clause clause = Clause.parse("Q(f(?x, g(?y)), ?h) => P(f(?x, g(?y)), h(?z)), =(f(a, g(b)), h(c))");
+        Clause expected = Clause.parse("=(Q(f(?x, g(?y)), ?h), true) => =(P(f(?x, g(?y)), h(?z)), true), =(f(a, g(b)), h(c))");
+
+        Clause result = clause.formatLiteralsWrtIdentity();
+
+        assertEquals(expected, result);
+    }
+
+    Stream<Arguments> provideParametersForApplySubstitutionToClause() {
+        return Stream.of(
+                Arguments.of(
+                        Clause.parse("Q(f(?x, g(?y)), ?h) =>"),
+                        Clause.parse("Q(f(?x, g(?y)), ?h) =>"),
+                        Map.of()
+                ),
+                Arguments.of(
+                        Clause.parse("Q(f(?x, g(?y)), ?h) =>"),
+                        Clause.parse("Q(f(a, g(?y)), ?h) =>"),
+                        Map.of("?x", Term.parse("a"))
+                ),
+                Arguments.of(
+                        Clause.parse("Q(f(?x, g(?y)), ?h) => P(f(?x, g(?y)), h(?z)), P(f(a, g(b)), h(c))"),
+                        Clause.parse("Q(f(a, g(b)), ?h) => P(f(a, g(b)), h(c))"),
+                        Map.of(
+                                "?x", Term.parse("a"),
+                                "?y", Term.parse("b"),
+                                "?z", Term.parse("c")
+                        )
+                )
+        );
     }
 }

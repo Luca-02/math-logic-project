@@ -69,12 +69,16 @@ public class LpoComparator implements Comparator<Term> {
         // If f = g, we look for the first index k where s and t differ
         if (symbolPrecedence.compare(f, g) == 0) {
             int minSize = Math.min(sArgs.size(), tArgs.size());
-            int k = 0;
+            int k = -1;
             for (int i = 0; i < minSize; i++) {
                 if (!sArgs.get(i).equals(tArgs.get(i))) {
                     k = i;
                     break;
                 }
+            }
+
+            if (k == -1) {
+                return Integer.compare(sArgs.size(), tArgs.size());
             }
 
             // We found an index k where sk and tk differ

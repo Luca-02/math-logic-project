@@ -35,7 +35,7 @@ public class Subsumption {
             Clause clause2,
             @NotNull Map<String, Term> substitution
     ) {
-        Clause subClause1 = Substitution.applySubstitution(clause1, substitution);
+        Clause subClause1 = clause1.applySubstitution(substitution);
         return clause2.getNegativeLiterals().containsAll(subClause1.getNegativeLiterals()) &&
                 clause2.getPositiveLiterals().containsAll(subClause1.getPositiveLiterals());
     }

@@ -18,6 +18,7 @@ class LpoComparatorTest {
         LpoComparator comparator = new LpoComparator();
         int result = comparator.compare(s, t);
         int inverse = comparator.compare(t, s);
+
         assertEquals(expected, result);
         assertEquals(expected * -1, inverse);
     }
@@ -26,8 +27,10 @@ class LpoComparatorTest {
         return Stream.of(
                 Arguments.of(Term.MINIMAL, Term.parse("?x"), -1),
                 Arguments.of(Term.parse("?x"), Term.parse("?x"), 0),
+                Arguments.of(Term.parse("?x"), Term.parse("?y"), 0),
                 Arguments.of(Term.parse("f(g(a), h(a))"), Term.parse("f(g(a), h(a))"), 0),
                 Arguments.of(Term.parse("?a"), Term.parse("?b"), 0),
+                Arguments.of(Term.parse("?w"), Term.parse("b(?x)"), -1),
                 Arguments.of(Term.parse("?x"), Term.parse("f(a)"), -1),
                 Arguments.of(Term.parse("f(?x)"), Term.parse("g(?x)"), -1),
                 Arguments.of(Term.parse("f(a)"), Term.parse("g(b)"), -1),

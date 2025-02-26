@@ -3,18 +3,14 @@ package org.mathlogic.structure;
 import org.mathlogic.utility.Parsing;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static org.mathlogic.Constant.IDENTITY_SYMBOL;
 import static org.mathlogic.Constant.NOT_SYMBOL;
 
 /**
- * Identify a literal (atomic formula) P(t1, ..., tn),
- * where P is a predicate and each ti a term.
+ * Identify a literal (atomic formula) {@code P(t1, ..., tn)},
+ * where {@code P} is a predicate and each {@code ti} a term.
  */
 public class Literal implements LogicalStructure<Literal> {
     private boolean isNegated;
@@ -40,7 +36,7 @@ public class Literal implements LogicalStructure<Literal> {
     }
 
     public List<Term> getTerms() {
-        return terms;
+        return Collections.unmodifiableList(terms);
     }
 
     public boolean isIdentity() {
@@ -52,8 +48,44 @@ public class Literal implements LogicalStructure<Literal> {
     }
 
     /**
+     * Transform the current literal with the identity predicate, if it isn't already.
+     * In case the predicate of the literal is not the identity, we can write
+     * the atomic formulas of the type {@code P(t1, ..., tn)} in the form
+     * {@code p(t1, ..., tn) = true}, where {@code p} is a new n-ary function symbol
+     * and {@code true} a new constant.
+     */
+    public Literal formatWrtIdentity() {
+        if (isIdentity()) {
+            return this;
+        }
+
+        List<Term> newTerms = new ArrayList<>();
+        newTerms.add(new Term(predicate, terms));
+        newTerms.add(Term.MINIMAL);
+        return new Literal(isNegated, IDENTITY_SYMBOL, newTerms);
+    }
+
+    /**
+     * Return the literal with the argument sorted with through
+     * {@code comparator} order if it is an identity.
+     */
+    public Literal sortTermsIfIdentity(Comparator<Term> comparator) {
+        if (!isIdentity()) {
+            return this;
+        }
+
+        List<Term> terms = new ArrayList<>(getTerms());
+        terms.sort(comparator);
+        return new Literal(isNegated(), getPredicate(), terms);
+    }
+
+    /**
      * Returns a multiset view of the literals with their multiplicity.
      * If the literal is negated, its multiplicity is doubled.
+     * In case the predicate of the literal is not the identity, we can write
+     * the atomic formulas of the type {@code P(t1, ..., tn)} in the form
+     * {@code p(t1, ..., tn) = true}, where {@code p} is a new n-ary function symbol
+     * and {@code true} a new constant.
      */
     public Map<Term, Integer> getMultisetView() {
         Map<Term, Integer> multiset = new HashMap<>();
@@ -100,6 +132,14 @@ public class Literal implements LogicalStructure<Literal> {
             copiedTerms.add(term.copy());
         }
         return new Literal(isNegated, predicate, copiedTerms);
+    }
+
+    @Override
+    public Literal applySubstitution(@NotNull Map<String, Term> substitutions) {
+        List<Term> substitutedTerms = getTerms().stream()
+                .map(term -> term.applySubstitution(substitutions))
+                .toList();
+        return new Literal(isNegated(), getPredicate(), substitutedTerms);
     }
 
     @Override

@@ -42,6 +42,11 @@ class MultisetComparatorTest {
     Stream<Arguments> provideParametersForLiteralComparison() {
         return Stream.of(
                 Arguments.of(
+                        Literal.parse("=(?v, ?w)"),
+                        Literal.parse("=(?w, b(?x))"),
+                        -1
+                ),
+                Arguments.of(
                         Literal.parse("¬=(e(?x), d(?x))"),
                         Literal.parse("¬C(?x)"),
                         1
@@ -69,6 +74,11 @@ class MultisetComparatorTest {
                 Arguments.of(
                         Literal.parse("=(?x, f(?y))"),
                         Literal.parse("=(?y, f(?x))"),
+                        0
+                ),
+                Arguments.of(
+                        Literal.parse("¬=(e(?x), d(?x))"),
+                        Literal.parse("=(e(?y), d(a))"),
                         0
                 )
         );

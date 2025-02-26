@@ -1,13 +1,11 @@
 package org.mathlogic.utility;
 
 import org.mathlogic.structure.Clause;
-import org.mathlogic.structure.Term;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,6 +18,14 @@ class RenamingTest {
         Renaming.renameClausesToDisjointVariable(original, toRename);
 
         assertEquals(expected, toRename);
+    }
+
+    @ParameterizedTest(name = "{index} -> clause={0}, expected={1}")
+    @MethodSource("provideParametersForRenameLogicalStructureToSameVariable")
+    void testRenameLogicalStructureToSameVariable(Clause clause, Clause expected) {
+        Clause result = Renaming.renameLogicalStructureToSameVariable(clause);
+
+        assertEquals(expected, result);
     }
 
     Stream<Arguments> provideParametersForRenameClausesToDisjointVariable() {
@@ -43,6 +49,19 @@ class RenamingTest {
                         Clause.parse("R(c, ?x, ?y), Q(f(?x)) => R(c, s(?x), ?z)"),
                         Clause.parse("R(c, ?y, ?h) => Q(f(?x))"),
                         Clause.parse("R(c, ?y', ?h) => Q(f(?x'))")
+                )
+        );
+    }
+
+    Stream<Arguments> provideParametersForRenameLogicalStructureToSameVariable() {
+        return Stream.of(
+                Arguments.of(
+                        Clause.parse("=>"),
+                        Clause.parse("=>")
+                ),
+                Arguments.of(
+                        Clause.parse("R(c, ?x, ?y), Q(f(?x)) => R(c, s(?x), ?z)"),
+                        Clause.parse("R(c, ?x, ?x), Q(f(?x)) => R(c, s(?x), ?x)")
                 )
         );
     }

@@ -49,11 +49,11 @@ public class MatchingReplacementResolution {
             Literal lit2,
             @NotNull Map<String, Term> substitution
     ) {
-        Literal subLit1 = Substitution.applySubstitution(lit1, substitution);
+        Literal subLit1 = lit1.applySubstitution(substitution);
 
         Clause cleanClause1 = clause1.copy();
         cleanClause1.removeLiteral(lit1);
-        Clause subCleanClause1 = Substitution.applySubstitution(cleanClause1, substitution);
+        Clause subCleanClause1 = cleanClause1.applySubstitution(substitution);
 
         Clause cleanClause2 = clause2.copy();
         cleanClause2.removeLiteral(lit2);

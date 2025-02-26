@@ -17,13 +17,33 @@ class LiteralTest {
     @ParameterizedTest(name = "{index} -> literal={0}, expected={1}")
     @MethodSource("provideParametersForCollectSymbols")
     void testCollectSymbols(Literal literal, int expected) {
-        assertEquals(expected, literal.collectSymbols().size());
+        int result = literal.collectSymbols().size();
+
+        assertEquals(expected, result);
+    }
+
+    @ParameterizedTest(name = "{index} -> literal={0}, expected={1}")
+    @MethodSource("provideParametersForFormatLiteralWithIdentity")
+    void testFormatLiteralWithIdentity(Literal literal, Literal expected) {
+        Literal result = literal.formatWrtIdentity();
+
+        assertEquals(expected, result);
     }
 
     @ParameterizedTest(name = "{index} -> literal={0}, expected={1}")
     @MethodSource("provideParametersForGetMultisetView")
     void testGetMultisetView(Literal literal, Map<Term, Integer> expected) {
-        assertEquals(expected, literal.getMultisetView());
+        Map<Term, Integer> result = literal.getMultisetView();
+
+        assertEquals(expected, result);
+    }
+
+    @ParameterizedTest(name = "{index} -> lit={0}, expected={1}, substitution={2}")
+    @MethodSource("provideParametersForApplySubstitutionToLiteral")
+    void testApplySubstitutionToLiteral(Literal lit, Literal expected, Map<String, Term> substitution) {
+        Literal result = lit.applySubstitution(substitution);
+
+        assertEquals(expected, result);
     }
 
     @Test
@@ -91,6 +111,19 @@ class LiteralTest {
         );
     }
 
+    Stream<Arguments> provideParametersForFormatLiteralWithIdentity() {
+        return Stream.of(
+                Arguments.of(
+                        Literal.parse("Q(f(g(?x), ?y))"),
+                        Literal.parse("=(Q(f(g(?x), ?y)), true)")
+                ),
+                Arguments.of(
+                        Literal.parse("=(f(?x, ?y), f(g(?x), ?y))"),
+                        Literal.parse("=(f(?x, ?y), f(g(?x), ?y))")
+                )
+        );
+    }
+
     Stream<Arguments> provideParametersForGetMultisetView() {
         return Stream.of(
                 Arguments.of(
@@ -126,6 +159,16 @@ class LiteralTest {
                         Map.of(
                                 Term.parse("f(?x, ?y)"), 2
                         )
+                )
+        );
+    }
+
+    Stream<Arguments> provideParametersForApplySubstitutionToLiteral() {
+        return Stream.of(
+                Arguments.of(
+                        Literal.parse("P(g(?y), f(?x, h(?x), ?y))"),
+                        Literal.parse("P(g(b), f(g(a), h(g(a)), b))"),
+                        Map.of("?x", Term.parse("g(a)"), "?y", Term.parse("b"))
                 )
         );
     }

@@ -19,7 +19,7 @@ public abstract class AutomaticCalculus {
     /**
      * Initialize usable and worked clauses sets with a given set of clauses to refute.
      */
-    private void initClauses(Set<Clause> clauses) {
+    protected void initClausesSets(Set<Clause> clauses) {
         usable.clear();
         worked.clear();
         usable.addAll(clauses);
@@ -33,7 +33,7 @@ public abstract class AutomaticCalculus {
     public boolean refute(Set<Clause> clauses) {
         if (clauses.isEmpty()) return false;
 
-        initClauses(clauses);
+        initClausesSets(clauses);
 
         do {
             // If Us contains an empty clause we have reached a refutation.
@@ -69,7 +69,7 @@ public abstract class AutomaticCalculus {
     }
 
     /**
-     * Select the given clause by means of an appropriate choice function
+     * Select the {@code given} clause by means of an appropriate choice function
      * (in this case the clause with the minimum number of symbols).
      */
     public Clause selectGivenClause(Set<Clause> clauses) {
@@ -83,7 +83,7 @@ public abstract class AutomaticCalculus {
     }
 
     /**
-     * Apply all possible inference between given clause, itself and the clauses of {@code Wo}.
+     * Apply all possible inference between {@code given} clause, itself and the clauses of {@code Wo}.
      */
     private Set<Clause> inferAllPossibleClauses(Clause given) {
         Clause givenCopy = given.copy();
@@ -131,13 +131,13 @@ public abstract class AutomaticCalculus {
     }
 
     /**
-     * Apply all possible inference between given clause and itself renamed so that
+     * Apply all possible inference between {@code given} clause and itself renamed so that
      * they have disjoint variable.
      */
     protected abstract Set<Clause> inferAllPossibleClausesFromItself(Clause given, Clause renamedGiven);
 
     /**
-     * Apply all possible inference between given clause and a clause of {@code Wo} renamed
+     * Apply all possible inference between {@code given} clause and a clause of {@code Wo} renamed
      * so that they have disjoint variable.
      */
     protected abstract Set<Clause> inferAllPossibleClausesFromWorkedClause(Clause given, Clause renamedClauseWo);

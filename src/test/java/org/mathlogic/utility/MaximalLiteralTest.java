@@ -39,8 +39,8 @@ class MaximalLiteralTest {
 
     @Test
     void testIsMaximalException() {
-        Literal lit = Literal.parse("¬=(f(b), g(b))");
-        Clause clause = Clause.parse("=(e(b), d(b)) => =(e(b), e(a))");
+        Literal lit = Literal.parse("c(?x)");
+        Clause clause = Clause.parse("c(?x), =(e(?x), d(?x)) => =(e(?y), e(a))");
         assertThrows(
                 LiteralNotFoundInClauseException.class,
                 () -> MaximalLiteral.isMaximal(lit, clause)
@@ -64,6 +64,14 @@ class MaximalLiteralTest {
                 Arguments.of(
                         Clause.parse("=> =(?x, f(?y)), =(?y, f(?x))"),
                         Set.of(Literal.parse("=(?x, f(?y))"), Literal.parse("=(?y, f(?x))"))
+                ),
+                Arguments.of(
+                        Clause.parse("=> =(b(?x), ?w), =(b(?x), ?u), =(?w, ?u)"),
+                        Set.of(Literal.parse("=(b(?x), ?u)"), Literal.parse("=(b(?x), ?w)"))
+                ),
+                Arguments.of(
+                        Clause.parse("=> =(b(?x), ?v), =(?w, b(?x))"),
+                        Set.of(Literal.parse("=(b(?x), ?v)"), Literal.parse("=(?w, b(?x))"))
                 )
         );
     }
@@ -71,16 +79,22 @@ class MaximalLiteralTest {
     Stream<Arguments> provideParametersForIsMaximal() {
         return Stream.of(
                 Arguments.of(
-                        Literal.parse("c(?x)"),
+                        Literal.parse("¬c(?x)"),
                         Clause.parse("c(?x), =(e(?x), d(?x)) => =(e(?y), e(a))"),
                         false,
                         false
                 ),
                 Arguments.of(
                         Literal.parse("¬=(e(?x), d(?x))"),
-                        Clause.parse("c(?x), =(e(?x), d(?x)) => =(e(?y), e(a))"),
+                        Clause.parse("c(?x), =(e(?x), d(?x)) => =(e(?y), d(a))"),
                         false,
                         true
+                ),
+                Arguments.of(
+                        Literal.parse("=(e(?y), d(a))"),
+                        Clause.parse("c(?x), =(e(?x), d(?x)) => =(e(?y), d(a))"),
+                        true,
+                        false
                 ),
                 Arguments.of(
                         Literal.parse("=(e(?y), e(a))"),
@@ -95,8 +109,8 @@ class MaximalLiteralTest {
                         false
                 ),
                 Arguments.of(
-                        Literal.parse("=(e(?y), e(a))"),
-                        Clause.parse("c(?x), =(e(?x), d(?x)) => =(e(?y), e(a))"),
+                        Literal.parse("=(e(?y), d(a))"),
+                        Clause.parse("c(?x), =(e(?x), d(?x)) => =(e(?y), d(a))"),
                         true,
                         false
                 ),
@@ -117,6 +131,24 @@ class MaximalLiteralTest {
                         Clause.parse("=(e(b), d(b)) => =(e(b), e(a))"),
                         true,
                         false
+                ),
+                Arguments.of(
+                        Literal.parse("=(b(?x), ?u)"),
+                        Clause.parse("=> =(b(?x), ?w), =(b(?x), ?u), =(?w, ?u)"),
+                        false,
+                        true
+                ),
+                Arguments.of(
+                        Literal.parse("=(b(?x), ?u)"),
+                        Clause.parse("=> =(b(?x), ?w), =(b(?x), ?u), =(?w, ?u)"),
+                        true,
+                        true
+                ),
+                Arguments.of(
+                        Literal.parse("=(b(?x), ?v)"),
+                        Clause.parse("=> =(?v, ?w), =(b(?x), ?v), =(?w, b(?x))"),
+                        true,
+                        true
                 )
         );
     }

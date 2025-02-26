@@ -1,7 +1,6 @@
 package org.mathlogic.utility;
 
-import org.mathlogic.structure.Clause;
-import org.mathlogic.structure.Term;
+import org.mathlogic.structure.*;
 
 import javax.validation.constraints.NotNull;
 import java.util.HashMap;
@@ -21,10 +20,25 @@ public class Renaming {
             @NotNull Clause toRename
     ) {
         Map<String, Term> substitutions = getSubstitutionForDisjointVariables(original, toRename);
+        toRename.replace(toRename.applySubstitution(substitutions));
+    }
 
-        if (substitutions != Unification.INVALID_SUBSTITUTION) {
-            toRename.replace(Substitution.applySubstitution(toRename, substitutions));
+    /**
+     * Rename the logical structure variables so that all the variable in it have the same default value,
+     * so we can treat all the variable as the same.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends LogicalStructure<?>> T renameLogicalStructureToSameVariable(
+            @NotNull T structure
+    ) {
+        Set<String> clauseVariables = getAllVariables(structure);
+        Map<String, Term> substitutions = new HashMap<>();
+
+        for (String clauseVar : clauseVariables) {
+            substitutions.put(clauseVar, Term.DEFAULT_VARIABLE);
         }
+
+        return (T) structure.applySubstitution(substitutions);
     }
 
     /**
@@ -35,10 +49,8 @@ public class Renaming {
             Clause original,
             Clause toRename
     ) {
-        Set<String> originalVariables = new HashSet<>(original.collectSymbols());
-        Set<String> toRenameVariables = new HashSet<>(toRename.collectSymbols());
-        originalVariables.removeIf(symbol -> symbol.charAt(0) != '?');
-        toRenameVariables.removeIf(symbol -> symbol.charAt(0) != '?');
+        Set<String> originalVariables = getAllVariables(original);
+        Set<String> toRenameVariables = getAllVariables(toRename);
 
         Map<String, Term> substitutions = new HashMap<>();
         for (String originalVar : originalVariables) {
@@ -48,6 +60,15 @@ public class Renaming {
                 }
             }
         }
-        return substitutions.isEmpty() ? Unification.INVALID_SUBSTITUTION : substitutions;
+        return substitutions;
+    }
+
+    /**
+     * Get the set of variables of a logical structure.
+     */
+    private static Set<String> getAllVariables(LogicalStructure<?> structure) {
+        Set<String> clauseVariables = new HashSet<>(structure.collectSymbols());
+        clauseVariables.removeIf(symbol -> symbol.charAt(0) != '?');
+        return clauseVariables;
     }
 }

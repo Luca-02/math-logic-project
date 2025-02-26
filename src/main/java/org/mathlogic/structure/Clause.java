@@ -79,6 +79,17 @@ public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
         setLiterals(replacement.getAllLiterals());
     }
 
+    /**
+     * Transform all the clause literals with the identity predicate, if they aren't already.
+     */
+    public Clause formatLiteralsWrtIdentity() {
+        Set<Literal> formattedLit = new HashSet<>();
+        for (Literal lit : getAllLiterals()) {
+            formattedLit.add(lit.formatWrtIdentity());
+        }
+        return new Clause(formattedLit);
+    }
+
     public Set<Literal> getNegativeLiterals() {
         return Collections.unmodifiableSet(literalsMap.get(LiteralState.NEGATIVE));
     }
@@ -155,6 +166,15 @@ public class Clause implements LogicalStructure<Clause>, Comparable<Clause> {
             copiedLiterals.add(lit.copy());
         }
         return new Clause(copiedLiterals);
+    }
+
+    @Override
+    public Clause applySubstitution(@NotNull Map<String, Term> substitutions) {
+        Set<Literal> literals = new HashSet<>();
+        for (Literal lit : getAllLiterals()) {
+            literals.add(lit.applySubstitution(substitutions));
+        }
+        return new Clause(literals);
     }
 
     @Override

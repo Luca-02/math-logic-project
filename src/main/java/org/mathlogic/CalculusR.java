@@ -3,7 +3,6 @@ package org.mathlogic;
 import org.mathlogic.structure.Clause;
 import org.mathlogic.structure.Literal;
 import org.mathlogic.structure.Term;
-import org.mathlogic.utility.Substitution;
 import org.mathlogic.utility.Unification;
 
 import javax.validation.constraints.NotNull;
@@ -39,7 +38,7 @@ public class CalculusR extends AutomaticCalculus {
     }
 
     /**
-     * All possible resolution of two clauses.
+     * All possible Resolution of two clauses.
      */
     private Set<Clause> resolution(Clause clauseWithPos, Clause clauseWithNeg) {
         Set<Clause> newClauses = new HashSet<>();
@@ -55,7 +54,7 @@ public class CalculusR extends AutomaticCalculus {
     }
 
     /**
-     * All possible right factorization of a clause.
+     * All possible Right Factorization of a clause.
      */
     private Set<Clause> rightFactorization(Clause clause) {
         Set<Clause> newClauses = new HashSet<>();
@@ -99,11 +98,11 @@ public class CalculusR extends AutomaticCalculus {
         mergedLiterals.addAll(clauseWithNegCopy.getAllLiterals());
 
         Clause resolvent = new Clause(mergedLiterals);
-        return Substitution.applySubstitution(resolvent, mgu);
+        return resolvent.applySubstitution(mgu);
     }
 
     /**
-     * Right factorization of a clause with the given literals for which we need to perform the unification.
+     * Right Factorization of a clause with the given literals for which we need to perform the unification.
      */
     public Clause applyRightFactorize(Clause clause, Literal lit1, Literal lit2) {
         Map<String, Term> mgu = Unification.unify(lit1, lit2);
@@ -114,34 +113,34 @@ public class CalculusR extends AutomaticCalculus {
 
         // By applying the substitution on the clause, it will automatically merge
         // the literals A and B on which the unification has been done through the mgu
-        return Substitution.applySubstitution(clause, mgu);
+        return clause.applySubstitution(mgu);
     }
 
     /**
-     * Provide the list of positive literals of a clause for which we can apply resolution rule.
+     * Provide the list of positive literals of a clause for which we can apply Resolution rule.
      */
     protected Set<Literal> getPossibleSolvablePositiveLiterals(Clause clause) {
         return clause.getPositiveLiterals();
     }
 
     /**
-     * Provide the list of negative literals of a clause for which we can apply resolution rule.
+     * Provide the list of negative literals of a clause for which we can apply Resolution rule.
      */
     protected Set<Literal> getPossibleSolvableNegativeLiterals(Clause clause) {
         return clause.getNegativeLiterals();
     }
 
     /**
-     * Provide the list of literals of a clause for which we can apply factorization rule.
+     * Provide the list of literals of a clause for which we can apply Right Factorization rule.
      */
     protected Set<Literal> getPossibleFactorizableLiterals(Clause clause) {
         return clause.getPositiveLiterals();
     }
 
     /**
-     * Function that returns whether the resolution rule can be applied according to
+     * Function that returns whether the Resolution rule can be applied according to
      * certain rules with respect to the type of calculus being adopted.
-     * In the calculus R case, the resolution is always applied.
+     * In the calculus R case, the Resolution is always applied.
      */
     protected boolean resolutionCanBeApplied(
             Clause clauseWithPos,
@@ -154,9 +153,9 @@ public class CalculusR extends AutomaticCalculus {
     }
 
     /**
-     * Function that returns whether the right factorization rule can be applied according to
+     * Function that returns whether the Right Factorization rule can be applied according to
      * certain rules with respect to the type of calculus being adopted.
-     * In the calculus R case, the resolution is always applied.
+     * In the calculus R case, the Right Factorization is always applied.
      */
     protected boolean rightFactorizationCanBeApplied(
             Clause clause,
