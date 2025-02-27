@@ -17,7 +17,7 @@ The structure of the project is as follows:
 
 ## Requirements
 - [Java 17 or higher](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
-- [Maven 3.9 or higher](https://maven.apache.org/download.cgi)
+- [Maven 4.0 or higher](https://maven.apache.org/download.cgi)
 
 ## Setup
 To install the project, follow these steps:
