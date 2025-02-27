@@ -6,7 +6,7 @@ import java.util.Set;
 
 public class Main {
     /**
-     * Example of calculus.
+     * Example of usage.
      */
     public static void main(String[] args) {
         AutomaticCalculus resolver = new CalculusR();
