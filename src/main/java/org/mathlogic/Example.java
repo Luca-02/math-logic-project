@@ -1,10 +1,10 @@
-import org.mathlogic.AutomaticCalculus;
-import org.mathlogic.CalculusR;
+package org.mathlogic;
+
 import org.mathlogic.structure.Clause;
 
 import java.util.Set;
 
-public class Main {
+public class Example {
     /**
      * Example of usage.
      */
